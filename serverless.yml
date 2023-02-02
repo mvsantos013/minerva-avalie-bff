@@ -1,0 +1,158 @@
+service: minerva-avalie-bff
+
+frameworkVersion: "3"
+configValidationMode: error
+
+plugins:
+  - serverless-wsgi
+  - serverless-python-requirements
+  - serverless-plugin-resource-tagging
+
+custom:
+  stage: ${opt:stage, 'dev'}
+  pythonRequirements:
+    shouldZip:
+      local: true
+      dev: false
+      prod: false
+    zip: ${self:custom.pythonRequirements.shouldZip.${self:custom.stage}}
+  wsgi:
+    app: src/index.app
+    packRequirements: false
+
+provider:
+  name: aws
+  runtime: python3.9
+  stage: ${self:custom.stage}
+  region: us-east-1
+  timeout: 30
+  versionFunctions: false
+  stackTags:
+    user:project: ${self:service}
+  apiGateway:
+    binaryMediaTypes:
+      - multipart/form-data
+      - application/vnd.openxmlformats-officedocument.spreadsheetml.sheet
+      - application/pdf
+    resourcePolicy:
+      - Effect: Allow
+        Principal: "*"
+        Action: execute-api:Invoke
+        Resource: "execute-api:/*"
+  iamRoleStatements:
+    - Effect: Allow
+      Action:
+        - "lambda:InvokeFunction"
+        - "events:*"
+      Resource: "*"
+    - Effect: Allow
+      Action:
+        - "dynamodb:*"
+      Resource: arn:aws:dynamodb:${aws:region}:${aws:accountId}:table/${self:service}*
+  environment:
+    SERVICE_NAME: ${self:service}
+    AWS_ACCOUNT_ID: ${aws:accountId}
+    STAGE: ${self:provider.stage}
+    REGION: ${self:provider.region}
+
+functions:
+  main:
+    handler: wsgi_handler.handler
+    memorySize: 512
+    events:
+      - http:
+          cors: true
+          method: ANY
+          path: /
+      - http:
+          cors: true
+          method: ANY
+          path: "{proxy+}"
+
+resources:
+  Resources:
+    BucketFiles:
+      Type: AWS::S3::Bucket
+      Properties:
+        BucketName: "${self:service}-files-${self:provider.stage}"
+
+    BucketUI:
+      Type: AWS::S3::Bucket
+      Properties:
+        BucketName: "minerva-avalie-ui-${self:provider.stage}"
+        AccessControl: PublicRead
+
+    BucketUIPolicy:
+      Type: AWS::S3::BucketPolicy
+      DependsOn:
+        - BucketUI
+      Properties:
+        Bucket: !Ref BucketUI
+        PolicyDocument:
+          Version: "2012-10-17"
+          Statement:
+            - Sid: PublicReadGetObject
+              Effect: Allow
+              Principal: "*"
+              Action: s3:GetObject
+              Resource: arn:aws:s3:::minerva-avalie-ui-${self:provider.stage}/*
+
+    DepartmentsTable:
+      Type: AWS::DynamoDB::Table
+      Properties:
+        TableName: ${self:service}-${self:provider.stage}-departments
+        BillingMode: PAY_PER_REQUEST
+        AttributeDefinitions:
+          - AttributeName: id
+            AttributeType: S
+        KeySchema:
+          - AttributeName: id
+            KeyType: HASH
+
+    ProfessorsTable:
+      Type: AWS::DynamoDB::Table
+      Properties:
+        TableName: ${self:service}-${self:provider.stage}-professors
+        BillingMode: PAY_PER_REQUEST
+        AttributeDefinitions:
+          - AttributeName: departmentId
+            AttributeType: S
+          - AttributeName: id
+            AttributeType: S
+        KeySchema:
+          - AttributeName: departmentId
+            KeyType: HASH
+          - AttributeName: id
+            KeyType: RANGE
+
+    ProfessorsTestimonialsTable:
+      Type: AWS::DynamoDB::Table
+      Properties:
+        TableName: ${self:service}-${self:provider.stage}-professors-testimonials
+        BillingMode: PAY_PER_REQUEST
+        AttributeDefinitions:
+          - AttributeName: professorId
+            AttributeType: S
+          - AttributeName: studentId
+            AttributeType: S
+        KeySchema:
+          - AttributeName: professorId
+            KeyType: HASH
+          - AttributeName: studentId
+            KeyType: RANGE
+
+    ProfessorsRatingTable:
+      Type: AWS::DynamoDB::Table
+      Properties:
+        TableName: ${self:service}-${self:provider.stage}-professors-rating
+        BillingMode: PAY_PER_REQUEST
+        AttributeDefinitions:
+          - AttributeName: professorId
+            AttributeType: S
+          - AttributeName: studentId
+            AttributeType: S
+        KeySchema:
+          - AttributeName: professorId
+            KeyType: HASH
+          - AttributeName: studentId
+            KeyType: RANGE

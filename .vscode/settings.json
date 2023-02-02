@@ -1,0 +1,34 @@
+{
+  "editor.defaultFormatter": "esbenp.prettier-vscode",
+  "python.analysis.typeCheckingMode": "basic",
+  "python.formatting.provider": "black",
+  "python.formatting.blackArgs": [
+    "--skip-string-normalization",
+    "--line-length",
+    "100"
+  ],
+  "[python]": {
+    "editor.defaultFormatter": "ms-python.python",
+    "editor.formatOnSave": true
+  },
+  "python.analysis.diagnosticSeverityOverrides": {
+    "reportOptionalSubscript": "none",
+    "reportGeneralTypeIssues": "none"
+  },
+  "[json]": {
+    "editor.formatOnSave": true
+  },
+  "files.exclude": {
+    "**/.git": true,
+    "**/.svn": true,
+    "**/.hg": true,
+    "**/CVS": true,
+    "**/.DS_Store": true,
+    "**/Thumbs.db": true,
+    "**/__pycache__": true,
+    "**/.requirements.zip": true,
+    "**/.serverless": true,
+    "**/.venv": true,
+    "**/.packages": true
+  }
+}

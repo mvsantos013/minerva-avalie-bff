@@ -1,0 +1,21 @@
+{
+  "name": "minerva-avalie-bff",
+  "version": "1.0.0",
+  "description": "minerva-avalie-bff exposes endpoints for the UI (minerva-avalie-ui). The backend is responsible for communicating with downstream microservices and bringing it back to the frontend. The Backend For Frontend (BFF) application architecture is applied here.",
+  "main": "index.js",
+  "scripts": {
+    "start": "bash ./etc/run.sh",
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "deploy:dev": "serverless deploy --stage dev",
+    "deploy:prod": "serverless deploy --stage prod"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "serverless-plugin-resource-tagging": "^1.2.0",
+    "serverless-wsgi": "^3.0.1"
+  },
+  "devDependencies": {
+    "serverless-python-requirements": "^5.4.0"
+  }
+}

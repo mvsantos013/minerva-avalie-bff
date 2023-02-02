@@ -1,0 +1,22 @@
+[[source]]
+url = "https://pypi.org/simple"
+verify_ssl = true
+name = "pypi"
+
+[packages]
+boto3 = "*"
+requests = "*"
+numpy = "*"
+pandas = "*"
+flask = "*"
+flask-cors = "*"
+marshmallow = "==3.15.0"
+dynamorm = "*"
+pyjwt = "*"
+
+[dev-packages]
+behave = "*"
+black = "*"
+
+[requires]
+python_version = "3"
