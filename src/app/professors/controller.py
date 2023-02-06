@@ -3,7 +3,7 @@ from src.app.professors import repository
 
 blueprint = Blueprint('professors', __name__)
 
-@blueprint.route('/departments/<department_id/professors', methods=['GET'])
+@blueprint.route('/departments/<department_id>/professors', methods=['GET'])
 def fetch_professors_by_department(department_id):
     """Fetch professors by department.
     ---
@@ -52,11 +52,21 @@ def add_professor(deparment_id):
         200:
         description: OK
     """
-    professor = req.get_json()
+    professor = req.form.to_dict()
+    professor['picture'] = req.files.get('picture')
+    
+    for prop in professor:
+        if(professor[prop] == 'null'):
+            professor[prop] = None
+
+    allowed_image_extensions = ['png', 'jpg', 'jpeg']
+    if professor['picture'] and professor['picture'].filename.split('.')[-1] not in allowed_image_extensions:
+        return jsonify(error='Invalid image extension'), 400
+    
     repository.add_professor(professor)
     return jsonify(data=professor)
 
-@blueprint.route('/department_id/<department_id>/professors/<professor_id>', methods=['PUT'])
+@blueprint.route('/departments/<department_id>/professors/<professor_id>', methods=['PUT'])
 def update_professor(department_id, professor_id):
     """Update professor.
     ---
@@ -75,9 +85,19 @@ def update_professor(department_id, professor_id):
         200:
         description: OK
     """
-    data = req.get_json()
-    repository.update_professor(professor_id, data)
-    return jsonify(data=data)
+    professor = req.form.to_dict()
+    professor['picture'] = req.files.get('picture', None)
+    
+    for prop in professor:
+        if(professor[prop] == 'null'):
+            professor[prop] = None
+
+    allowed_image_extensions = ['png', 'jpg', 'jpeg']
+    if professor['picture'] and professor['picture'].filename.split('.')[-1] not in allowed_image_extensions:
+        return jsonify(error='Invalid image extension'), 400
+    
+    repository.update_professor(professor_id, professor)
+    return jsonify(data=professor)
 
 @blueprint.route('/departments/<department_id>/professors/<professor_id>', methods=['DELETE'])
 def remove_professor(department_id, professor_id):
