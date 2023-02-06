@@ -44,6 +44,8 @@ provider:
       Action:
         - "lambda:InvokeFunction"
         - "events:*"
+        - "cognito-idp:ListGroups"
+        - "cognito-idp:AdminAddUserToGroup"
       Resource: "*"
     - Effect: Allow
       Action:
@@ -68,6 +70,12 @@ functions:
           cors: true
           method: ANY
           path: "{proxy+}"
+  cognitoPreSignup:
+    handler: src/cognito/pre_signup.handler
+  cognitoPostConfirmation:
+    handler: src/cognito/post_confirmation.handler
+  cognitoPreTokenGeneration:
+    handler: src/cognito/pre_token_generation.handler
 
 resources:
   Resources:
@@ -96,6 +104,256 @@ resources:
               Principal: "*"
               Action: s3:GetObject
               Resource: arn:aws:s3:::minerva-avalie-ui-${self:provider.stage}/*
+
+    CognitoUserPool:
+      Type: AWS::Cognito::UserPool
+      Properties:
+        UserPoolName: ${self:service}-user-pool
+        AccountRecoverySetting:
+          RecoveryMechanisms:
+            - Name: verified_email
+              Priority: 1
+        UsernameAttributes: ["email"]
+        UsernameConfiguration:
+          CaseSensitive: false
+        Policies:
+          PasswordPolicy:
+            MinimumLength: 6
+            RequireLowercase: true
+            RequireNumbers: true
+            RequireSymbols: true
+            RequireUppercase: true
+        Schema:
+          - AttributeDataType: String
+            Mutable: true
+            Name: name
+            Required: true
+          - AttributeDataType: String
+            Mutable: true
+            Name: email
+            Required: true
+          - AttributeDataType: String
+            Mutable: true
+            Name: picture
+            Required: false
+        LambdaConfig:
+          PreSignUp: !GetAtt CognitoPreSignupLambdaFunction.Arn
+          PostConfirmation: !GetAtt CognitoPostConfirmationLambdaFunction.Arn
+          PreTokenGeneration: !GetAtt CognitoPreTokenGenerationLambdaFunction.Arn
+
+    GoogleIdentityProvider:
+      Type: AWS::Cognito::UserPoolIdentityProvider
+      Properties:
+        ProviderName: Google
+        ProviderType: Google
+        UserPoolId:
+          Ref: CognitoUserPool
+        AttributeMapping:
+          name: name
+          email: email
+          username: sub
+        ProviderDetails:
+          client_id: ${param:GoogleClientId, '#'}
+          client_secret: ${param:GoogleClientSecret, '#'}
+          authorize_scopes: "email openid profile"
+
+    CognitoUserPoolClient:
+      Type: AWS::Cognito::UserPoolClient
+      DependsOn:
+        - GoogleIdentityProvider
+      Properties:
+        ClientName: ${self:service}-user-pool-client
+        AllowedOAuthFlows: ["code"]
+        AllowedOAuthFlowsUserPoolClient: true
+        AllowedOAuthScopes:
+          [
+            "phone",
+            "email",
+            "openid",
+            "profile",
+            "aws.cognito.signin.user.admin",
+          ]
+        ExplicitAuthFlows:
+          - ALLOW_ADMIN_USER_PASSWORD_AUTH
+          - ALLOW_CUSTOM_AUTH
+          - ALLOW_USER_PASSWORD_AUTH
+          - ALLOW_USER_SRP_AUTH
+          - ALLOW_REFRESH_TOKEN_AUTH
+        CallbackURLs:
+          - "http://localhost:8080/login/"
+        LogoutURLs:
+          - "http://localhost:8080/"
+        EnableTokenRevocation: true
+        GenerateSecret: false
+        RefreshTokenValidity: 1
+        SupportedIdentityProviders: ["Google"]
+        UserPoolId:
+          Ref: CognitoUserPool
+        ReadAttributes: ["name", "email"]
+        WriteAttributes: ["name", "email"]
+
+    CognitoIdentityPool:
+      Type: AWS::Cognito::IdentityPool
+      Properties:
+        IdentityPoolName: ${self:service}-identity-pool
+        AllowUnauthenticatedIdentities: false
+        CognitoIdentityProviders:
+          - ClientId: !Ref CognitoUserPoolClient
+            ProviderName: !Sub
+              - cognito-idp.us-east-1.amazonaws.com/${client}
+              - { client: !Ref CognitoUserPool }
+
+    CognitoSNSRole:
+      Type: "AWS::IAM::Role"
+      Properties:
+        AssumeRolePolicyDocument:
+          Version: "2012-10-17"
+          Statement:
+            - Effect: "Allow"
+              Principal:
+                Service:
+                  - "cognito-idp.amazonaws.com"
+              Action:
+                - "sts:AssumeRole"
+        Policies:
+          - PolicyName: "CognitoSNSPolicy"
+            PolicyDocument:
+              Version: "2012-10-17"
+              Statement:
+                - Effect: "Allow"
+                  Action: "sns:publish"
+                  Resource: "*"
+
+    CognitoUnauthorizedUserRole:
+      Type: "AWS::IAM::Role"
+      Properties:
+        AssumeRolePolicyDocument:
+          Version: "2012-10-17"
+          Statement:
+            - Effect: "Allow"
+              Principal:
+                Federated: "cognito-identity.amazonaws.com"
+              Action:
+                - "sts:AssumeRoleWithWebIdentity"
+              Condition:
+                StringEquals:
+                  "cognito-identity.amazonaws.com:aud": !Ref CognitoIdentityPool
+                "ForAnyValue:StringLike":
+                  "cognito-identity.amazonaws.com:amr": unauthenticated
+        Policies:
+          - PolicyName: "CognitoUnauthorizedUserPolicy"
+            PolicyDocument:
+              Version: "2012-10-17"
+              Statement:
+                - Effect: "Allow"
+                  Action:
+                    - "mobileanalytics:PutEvents"
+                    - "cognito-sync:*"
+                  Resource: "*"
+
+    CognitoAuthorizedUserRole:
+      Type: "AWS::IAM::Role"
+      Properties:
+        AssumeRolePolicyDocument:
+          Version: "2012-10-17"
+          Statement:
+            - Effect: "Allow"
+              Principal:
+                Federated: "cognito-identity.amazonaws.com"
+              Action:
+                - "sts:AssumeRoleWithWebIdentity"
+              Condition:
+                StringEquals:
+                  "cognito-identity.amazonaws.com:aud": !Ref CognitoIdentityPool
+                "ForAnyValue:StringLike":
+                  "cognito-identity.amazonaws.com:amr": authenticated
+        Policies:
+          - PolicyName: "CognitoAuthorizedUserPolicy"
+            PolicyDocument:
+              Version: "2012-10-17"
+              Statement:
+                - Effect: "Allow"
+                  Action:
+                    - "mobileanalytics:PutEvents"
+                    - "cognito-sync:*"
+                    - "cognito-identity:*"
+                  Resource: "*"
+                - Effect: "Allow"
+                  Action:
+                    - "lambda:InvokeFunction"
+                  Resource: "*"
+
+    CognitoIdentityPoolRoleMapping:
+      Type: "AWS::Cognito::IdentityPoolRoleAttachment"
+      Properties:
+        IdentityPoolId: !Ref CognitoIdentityPool
+        Roles:
+          authenticated: !GetAtt CognitoAuthorizedUserRole.Arn
+          unauthenticated: !GetAtt CognitoUnauthorizedUserRole.Arn
+
+    CognitoPreSignupPermission:
+      Type: "AWS::Lambda::Permission"
+      Properties:
+        Action: "lambda:InvokeFunction"
+        FunctionName: !GetAtt CognitoPreSignupLambdaFunction.Arn
+        Principal: "cognito-idp.amazonaws.com"
+        SourceArn: !GetAtt CognitoUserPool.Arn
+
+    CognitoPostConfirmationPermission:
+      Type: "AWS::Lambda::Permission"
+      Properties:
+        Action: "lambda:InvokeFunction"
+        FunctionName: !GetAtt CognitoPostConfirmationLambdaFunction.Arn
+        Principal: "cognito-idp.amazonaws.com"
+        SourceArn: !GetAtt CognitoUserPool.Arn
+
+    CognitoPreTokenGenerationPermission:
+      Type: "AWS::Lambda::Permission"
+      Properties:
+        Action: "lambda:InvokeFunction"
+        FunctionName: !GetAtt CognitoPreTokenGenerationLambdaFunction.Arn
+        Principal: "cognito-idp.amazonaws.com"
+        SourceArn: !GetAtt CognitoUserPool.Arn
+
+    PermissionsTable:
+      Type: AWS::DynamoDB::Table
+      Properties:
+        TableName: ${self:service}-${self:provider.stage}-permissions
+        BillingMode: PAY_PER_REQUEST
+        AttributeDefinitions:
+          - AttributeName: id
+            AttributeType: S
+        KeySchema:
+          - AttributeName: id
+            KeyType: HASH
+
+    GroupsPermissionsTable:
+      Type: AWS::DynamoDB::Table
+      Properties:
+        TableName: ${self:service}-${self:provider.stage}-groups-permissions
+        BillingMode: PAY_PER_REQUEST
+        AttributeDefinitions:
+          - AttributeName: groupId
+            AttributeType: S
+          - AttributeName: permissionId
+            AttributeType: S
+        KeySchema:
+          - AttributeName: groupId
+            KeyType: HASH
+          - AttributeName: permissionId
+            KeyType: RANGE
+
+    AllowedDomainsTable:
+      Type: AWS::DynamoDB::Table
+      Properties:
+        TableName: ${self:service}-${self:provider.stage}-allowed-domains
+        BillingMode: PAY_PER_REQUEST
+        AttributeDefinitions:
+          - AttributeName: domain
+            AttributeType: S
+        KeySchema:
+          - AttributeName: domain
+            KeyType: HASH
 
     DepartmentsTable:
       Type: AWS::DynamoDB::Table
@@ -144,7 +402,7 @@ resources:
     ProfessorsRatingTable:
       Type: AWS::DynamoDB::Table
       Properties:
-        TableName: ${self:service}-${self:provider.stage}-professors-rating
+        TableName: ${self:service}-${self:provider.stage}-professors-ratings
         BillingMode: PAY_PER_REQUEST
         AttributeDefinitions:
           - AttributeName: professorId

@@ -3,7 +3,9 @@ import jwt
 import json
 from flask import Flask, jsonify, request as req
 from flask_cors import CORS
+from src.app.departments import controller as departments_controller
 from src.app.professors import controller as professors_controller
+from src.app.testimonials import controller as testimonials_controller
 
 app = Flask(__name__)
 CORS(app)
@@ -11,7 +13,9 @@ app.config['JSON_SORT_KEYS'] = False
 
 
 # Register routes
+app.register_blueprint(departments_controller.blueprint, url_prefix='/api/v1')
 app.register_blueprint(professors_controller.blueprint, url_prefix='/api/v1')
+app.register_blueprint(testimonials_controller.blueprint, url_prefix='/api/v1')
 
 # # Load user into request for every endpoint
 # @app.before_request
