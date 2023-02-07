@@ -10,6 +10,9 @@ from src.models import PermissionModel, GroupPermissionModel
 
 def handler(event, context):
     user_groups = event['request']['groupConfiguration']['groupsToOverride']
+    
+    # Ignore Google group
+    user_groups = [g for g in user_groups if 'Google' not in g]
 
     permissions = []
     for group_id in user_groups:

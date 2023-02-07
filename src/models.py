@@ -9,6 +9,7 @@ class PermissionModel(DynaModel):
 
     class PermissionSchema(Schema):
         id = fields.Str(description='Permission ID')
+        description = fields.Str(description='Permission description')
 
     class Schema(PermissionSchema):
         def __init__(self, *args, **kwargs):

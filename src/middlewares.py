@@ -1,5 +1,6 @@
 from flask import jsonify, request as req
 from functools import wraps
+from src.lib.jwt_verifier import validate_jwt_token
 
 msg = 'Access Denied. Your token may be missing permissions, please login again to generate a new token. Contact a manager if the problem persists.'
 
@@ -12,8 +13,8 @@ def require_permission(permissions):
     def _require_permission_decorator(f):
         @wraps(f)
         def __require_permission_decorator(*args, **kwargs):
-            if 'permissions' not in req.user:
-                return jsonify({'error': msg}), 403
+            token = req.headers.get('Authorization')
+            user, groups, permissions = validate_jwt_token(token)
 
             user_permissions = req.user['permissions']
             for permission in permissions.split('|'):

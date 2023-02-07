@@ -12,10 +12,9 @@ STUDENT_GROUP = 'Student'
 cognito = boto3.client('cognito-idp')
 
 def handler(event, context):
-    email = event['request']['userAttributes']['email']
     cognito.admin_add_user_to_group(
         UserPoolId=COGNITO_USER_POOL_ID, 
-        Username=email, 
+        Username=event['userName'], 
         GroupName=STUDENT_GROUP
     )
     return event
