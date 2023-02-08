@@ -4,11 +4,18 @@ from src.lib.adapters import s3_adapter
 from src.constants import BUCKET_FILES
 
 def fetch_professors_by_department(department_id):
-    items = [e.to_dict() for e in ProfessorModel.query(departmentId=department_id).limit(10000)]
-    return items
+    professors = [e.to_dict() for e in ProfessorModel.query(departmentId=department_id).limit(10000)]
+    for professor in professors:
+        if(professor['publicRating'] is False): # Hide rating summary if it's not public
+            professor['ratingSummary'] = {}
+    return professors
 
 def fetch_professor(department_id, professor_id):
     professor = ProfessorModel.get(departmentId=department_id, id=professor_id)
+    if(professor is None):
+        raise Exception('Professor not found')
+    if(professor.publicRating is False): # Hide rating summary if it's not public
+        professor.ratingSummary = {}
     return professor.to_dict()
 
 def add_professor(professor):
@@ -23,8 +30,8 @@ def add_professor(professor):
         s3_adapter.upload_file(s3_path, picture)
         professor['pictureUrl'] = f'https://{BUCKET_FILES}.s3.amazonaws.com/{s3_path}'
     
-    if('rating' in professor):
-        del professor['rating']
+    if('ratingSummary' in professor):
+        del professor['ratingSummary']
 
     professor = ProfessorModel(**professor)
     professor.save()
@@ -43,8 +50,8 @@ def update_professor(professor_id, data):
         s3_adapter.upload_file(s3_path, picture)
         data['pictureUrl'] = f'https://{BUCKET_FILES}.s3.amazonaws.com/{s3_path}'
 
-    if('rating' in data):
-        del data['rating']
+    if('ratingSummary' in data):
+        del data['ratingSummary']
 
     professor.update(**data)
     professor.save()

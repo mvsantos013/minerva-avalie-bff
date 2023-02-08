@@ -70,7 +70,11 @@ class ProfessorModel(DynaModel):
         description = fields.Str(description='Professor description', allow_none=True, default='')
         about = fields.Str(description='Professor extended description', allow_none=True, default='')
         pictureUrl = fields.Str(description='S3 URI picture', allow_none=True, default='')
+        ratingSummary = fields.Dict(description='Rating summary', allow_none=True, default={})
         publicRating = fields.Bool(description='Public rating', default=False)
+        publicTestimonials = fields.Bool(description='Public testimonials', default=False)
+        publicStatistics = fields.Bool(description='Public statistics', default=False)
+
 
     class Schema(ProfessorSchema):
         def __init__(self, *args, **kwargs):
@@ -91,5 +95,23 @@ class TestimonialModel(DynaModel):
         updatedAt = fields.Str(description='Update date')
 
     class Schema(TestimonialSchema):
+        def __init__(self, *args, **kwargs):
+            super().__init__(*args, **kwargs)
+
+
+class ProfessorRatingModel(DynaModel):
+    class Table:
+        name = f'{SERVICE_NAME}-{ENV}-professors-ratings'
+        hash_key = 'professorId'
+        range_key = 'studentId'
+
+    class ProfessorRatingSchema(Schema):
+        professorId = fields.Str(description='Professor ID')
+        studentId = fields.Str(description='Student ID')
+        ratings = fields.Dict(description='Rating', keys=fields.Str(), values=fields.Decimal())
+        postedAt = fields.Str(description='Post date')
+        updatedAt = fields.Str(description='Update date')
+
+    class Schema(ProfessorRatingSchema):
         def __init__(self, *args, **kwargs):
             super().__init__(*args, **kwargs)

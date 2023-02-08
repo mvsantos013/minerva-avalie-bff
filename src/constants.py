@@ -12,3 +12,10 @@ BUCKET_FILES: str = f'{SERVICE_NAME}-files-{ENV}'
 
 COGNITO_USER_POOL_ID: str = '#' if ENV == 'prod' else 'us-east-1_kR9WTqcBB'
 COGNITO_APP_CLIENT_ID: str = '#' if ENV == 'prod' else '2ukub13155vbklac47l88gt0qm'
+
+RATING_DIDACTIC: str = 'didactic'
+RATING_ORGANIZATION: str = 'organization'
+RATING_MATERIALS: str = 'materials'
+RATING_RELATIONSHIP: str = 'relationship'
+RATING_EVALUATION: str = 'evaluation'
+RATING_TEST_DIFFICULTY: str = 'testDifficulty'
