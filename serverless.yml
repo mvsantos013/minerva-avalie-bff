@@ -393,12 +393,12 @@ resources:
         AttributeDefinitions:
           - AttributeName: professorId
             AttributeType: S
-          - AttributeName: studentId
+          - AttributeName: id
             AttributeType: S
         KeySchema:
           - AttributeName: professorId
             KeyType: HASH
-          - AttributeName: studentId
+          - AttributeName: id
             KeyType: RANGE
 
     ProfessorsRatingTable:

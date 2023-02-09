@@ -12,6 +12,7 @@
 import json
 import time
 import urllib.request
+import jwt as pyjwt
 from jose import jwk, jwt
 from jose.utils import base64url_decode
 from src.constants import AWS_REGION, COGNITO_USER_POOL_ID, COGNITO_APP_CLIENT_ID
@@ -32,6 +33,7 @@ def validate_jwt_token(token):
         keys = json.loads(response.decode('utf-8'))['keys']
         
     # get the kid from the headers prior to verification
+    token = token.replace('Bearer ', '')
     headers = jwt.get_unverified_headers(token)
     kid = headers['kid']
     # search for the kid in the downloaded public keys
@@ -54,7 +56,6 @@ def validate_jwt_token(token):
     if not public_key.verify(message.encode("utf8"), decoded_signature):
         print('Signature verification failed')
         return False
-    print('Signature successfully verified')
     # since we passed the verification, we can now safely
     # use the unverified claims
     claims = jwt.get_unverified_claims(token)
@@ -68,5 +69,11 @@ def validate_jwt_token(token):
         return False
         
     # now we can use the claims
-    print(claims)
-    return claims
+    user_data = json.loads(claims['userData'])
+    return claims, user_data['groups'], user_data['permissions']
+
+def unsafe_verify_jwt(token):
+    token = token.replace('Bearer ', '')
+    claims = pyjwt.decode(token, options={"verify_signature": False})
+    user_data = json.loads(claims['userData'])
+    return claims, user_data

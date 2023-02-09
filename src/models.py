@@ -85,11 +85,13 @@ class TestimonialModel(DynaModel):
     class Table:
         name = f'{SERVICE_NAME}-{ENV}-professors-testimonials'
         hash_key = 'professorId'
-        range_key = 'studentId'
+        range_key = 'id'
 
     class TestimonialSchema(Schema):
         professorId = fields.Str(description='Professor ID')
+        id = fields.Str(description='Testimonial ID')
         studentId = fields.Str(description='Student ID')
+        studentName = fields.Str(description='Student name')
         text = fields.Str(description='Content')
         postedAt = fields.Str(description='Post date')
         updatedAt = fields.Str(description='Update date')
@@ -109,6 +111,7 @@ class ProfessorRatingModel(DynaModel):
         professorId = fields.Str(description='Professor ID')
         studentId = fields.Str(description='Student ID')
         ratings = fields.Dict(description='Rating', keys=fields.Str(), values=fields.Decimal())
+        comments = fields.Dict(description='Comments', keys=fields.Str(), values=fields.Str(), allow_none=True, default={})
         postedAt = fields.Str(description='Post date')
         updatedAt = fields.Str(description='Update date')
 

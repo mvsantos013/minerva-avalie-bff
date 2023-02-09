@@ -1,6 +1,7 @@
 import traceback
 from flask import Flask, jsonify, request as req
 from flask_cors import CORS
+from src.lib.jwt_verifier import unsafe_verify_jwt
 from src.lib.utils import JSONEncoder
 from src.app.departments import controller as departments_controller
 from src.app.professors import controller as professors_controller
@@ -21,6 +22,27 @@ app.register_blueprint(departments_controller.blueprint, url_prefix='/api/v1')
 app.register_blueprint(professors_controller.blueprint, url_prefix='/api/v1')
 app.register_blueprint(testimonials_controller.blueprint, url_prefix='/api/v1')
 app.register_blueprint(ratings_controller.blueprint, url_prefix='/api/v1')
+
+# Load user details into request object
+@app.before_request
+def set_user():
+    try:
+        bearer_token = req.headers.get('Authorization')
+        if(bearer_token is None):
+            req.user = None
+            return
+
+        req.user = {}
+        user, user_data = unsafe_verify_jwt(bearer_token)
+        user['token'] = bearer_token.replace('Bearer ', '')
+        user['id'] = user['sub']
+        user['name'] = user['name'] if 'name' in user else user['email'].split('@')[0]
+        user['email'] = user['email']
+        user['groups'] = user_data['groups']
+        user['permissions'] = user_data['permissions']
+        req.user = user
+    except Exception as e:
+        pass
 
 # Returns a error in a standard way if endpoint crashes.
 @app.errorhandler(Exception)

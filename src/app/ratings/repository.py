@@ -21,7 +21,7 @@ def fetch_professor_ratings_by_student(professor_id, student_id):
         return {}
     return ratings.to_dict()
 
-def rate_professor(department_id, professor_id, student_id, ratings):
+def rate_professor(department_id, professor_id, student_id, ratings, comments):
     if('total' in ratings):
         del ratings['total']
 
@@ -59,6 +59,7 @@ def rate_professor(department_id, professor_id, student_id, ratings):
 
     # Save student individual rating
     rating.ratings = ratings
+    rating.comments = comments
     rating.save()
 
     professor.ratingSummary = utils.encode_decimals(professor.ratingSummary)
