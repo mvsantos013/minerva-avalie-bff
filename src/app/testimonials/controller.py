@@ -10,6 +10,10 @@ def fetch_professor_testimonials(professor_id):
     ---
     parameters:
         - name: professor_id
+          in: path
+          type: string
+          required: true
+        - name: departmentId
           in: query
           type: string
           required: true
@@ -19,7 +23,8 @@ def fetch_professor_testimonials(professor_id):
         200:
             description: OK
     """
-    return jsonify(data=repository.fetch_professor_testimonials(professor_id))
+    department_id = req.args.get('departmentId', '')
+    return jsonify(data=repository.fetch_professor_testimonials(department_id, professor_id))
 
 @blueprint.route('/professors/<professor_id>/testimonials', methods=['POST'])
 @require_permission('post-testimonial:professor')

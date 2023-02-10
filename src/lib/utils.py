@@ -2,7 +2,7 @@ import json
 from decimal import Decimal
 from src.lib.logger import Logger
 from src.constants import SERVICE_NAME
-# Import Mapping, Sequence, Set from dynamodb
+from flask import request as req
 
 logger: Logger = Logger(SERVICE_NAME)
 
@@ -43,6 +43,16 @@ def encode_decimals(data):
         return Decimal(str(data))
     else:
         return data
+
+def user_has_group(groups):
+    if req.user is None:
+        return False
+    return any(group in req.user['groups'] for group in groups.split('|'))
+
+def user_has_permission(permissions):
+    if req.user is None:
+        return False
+    return any(permission in req.user['permissions'] for permission in permissions.split('|'))
 
 def camel_to_snake(s):
     return ''.join(['_' + c.lower() if c.isupper() else c for c in s]).lstrip('_')

@@ -2,16 +2,25 @@ from datetime import datetime, timezone
 from src.lib import utils
 from src.models import ProfessorModel, ProfessorRatingModel
 
-def fetch_professor_ratings(professor_id):
+def fetch_professor_ratings(department_id, professor_id):
     """Fetch professor ratings."""
-    ratings = [e.to_dict() for e in ProfessorRatingModel.query(professorId=professor_id).limit(10000)]
+    professor = ProfessorModel.get(departmentId=department_id, id=professor_id)
+    if(professor is None):
+        raise Exception('Professor not found')
+    if(professor.publicRating is False and not utils.user_has_group('Admin')):
+        return []
+    ratings = []
+    for e in ProfessorRatingModel.query(professorId=professor_id).limit(10000):
+        rating = e.to_dict()
+        del rating['studentId'] # Remove student reference from response
+        ratings.append(rating)
     return ratings
 
 def fetch_professor_rating_summary(deparment_id, professor_id):
     professor = ProfessorModel.get(deparmentId=deparment_id, professorId=professor_id)
     if(professor is None):
         return {}
-    if(professor.publicRating is False):
+    if(professor.publicRating is False and not utils.user_has_group('Admin')):
         return {}
     return professor.ratingSummary
 
