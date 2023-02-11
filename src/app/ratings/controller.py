@@ -1,5 +1,6 @@
 from flask import Blueprint, jsonify, request as req
 from src.app.ratings import repository
+from src.middlewares import require_permission
 
 blueprint = Blueprint('ratings', __name__)
 
@@ -69,6 +70,7 @@ def fetch_professor_ratings_by_student(professor_id, student_id):
 
 
 @blueprint.route('/departments/<department_id>/professors/<professor_id>/ratings/<student_id>', methods=['POST'])
+@require_permission('rate:professor')
 def rate_professor(department_id, professor_id, student_id):
     """Rate professor.
     ---

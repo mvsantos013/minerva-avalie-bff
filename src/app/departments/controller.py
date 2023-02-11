@@ -1,5 +1,6 @@
 from flask import Blueprint, jsonify, request as req
 from src.app.departments import repository
+from src.middlewares import require_permission
 
 blueprint = Blueprint('departments', __name__)
 
@@ -34,6 +35,7 @@ def fetch_department(department_id):
     return jsonify(data=department)
 
 @blueprint.route('/departments', methods=['POST'])
+@require_permission('create:departments')
 def add_department():
     """Add department.
     ---
@@ -41,13 +43,14 @@ def add_department():
         - departments
     responses:
         200:
-        description: OK
+            description: OK
     """
     department = req.get_json()
     repository.add_department(department)
     return jsonify(data=department)
 
 @blueprint.route('/departments/<department_id>', methods=['PUT'])
+@require_permission('update:departments')
 def update_department(department_id):
     """Update department.
     ---
@@ -60,13 +63,14 @@ def update_department(department_id):
         - departments
     responses:
         200:
-        description: OK
+            description: OK
     """
     data = req.get_json()
     repository.update_department(department_id, data)
     return jsonify(data=data)
 
 @blueprint.route('/departments/<department_id>', methods=['DELETE'])
+@require_permission('delete:departments')
 def remove_department(department_id):
     """Remove department.
     ---
@@ -79,7 +83,7 @@ def remove_department(department_id):
         - departments
     responses:
         200:
-        description: OK
+            description: OK
     """
     repository.remove_department(department_id)
     return jsonify(data={})

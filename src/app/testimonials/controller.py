@@ -33,14 +33,14 @@ def add_professor_testimonial(professor_id):
     ---
     parameters:
         - name: professor_id
-            in: path
-            type: string
-            required: true
+          in: path
+          type: string
+          required: true
     tags:
         - testimonials
     responses:
         200:
-        description: OK
+            description: OK
     """
     # Only the own user can post a testimonial
     student_id = req.get_json().get('studentId', '')
@@ -73,7 +73,7 @@ def update_professor_testimonial(professor_id, testimonial_id):
         - testimonials
     responses:
         200:
-        description: OK
+            description: OK
     """
     # Only the own user can update it's testimonial
     student_id = req.get_json().get('studentId', '')
@@ -106,7 +106,7 @@ def remove_professor_testimonial(professor_id, testimonial_id):
         - testimonials
     responses:
         200:
-        description: OK
+            description: OK
     """
     # Only the own user can remove it's testimonial
     student_id = req.get_json().get('studentId', '')
@@ -133,7 +133,7 @@ def report_testimonial(professor_id, testimonial_id):
         - testimonials
     responses:
         200:
-        description: OK
+            description: OK
     """
     testimonial = req.get_json()
     testimonial['professorId'] = professor_id
@@ -150,7 +150,7 @@ def fetch_reported_testimonials():
         - testimonials
     responses:
         200:
-        description: OK
+            description: OK
     """
     return jsonify(data=repository.fetch_reported_testimonials())
 
@@ -172,7 +172,7 @@ def approve_reported_testimonial(professor_id, testimonial_id):
         - testimonials
     responses:
         200:
-        description: OK
+            description: OK
     """
     testimonial = repository.approve_reported_testimonial(professor_id, testimonial_id)
     return jsonify(data=testimonial)
@@ -195,7 +195,7 @@ def remove_reported_testimonial(professor_id, testimonial_id):
         - testimonials
     responses:
         200:
-        description: OK
+            description: OK
     """
     testimonial = repository.remove_reported_testimonial(professor_id, testimonial_id)
     return jsonify(data=testimonial)

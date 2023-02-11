@@ -1,5 +1,6 @@
 from flask import Blueprint, jsonify, request as req
 from src.app.professors import repository
+from src.middlewares import require_permission
 
 blueprint = Blueprint('professors', __name__)
 
@@ -43,6 +44,7 @@ def fetch_professor(department_id, professor_id):
     return jsonify(data=professor)
 
 @blueprint.route('/departments/<deparment_id>/professors', methods=['POST'])
+@require_permission('create:professors')
 def add_professor(deparment_id):
     """Add professor.
     ---
@@ -50,7 +52,7 @@ def add_professor(deparment_id):
         - professors
     responses:
         200:
-        description: OK
+            description: OK
     """
     professor = req.form.to_dict()
     professor['picture'] = req.files.get('picture')
@@ -67,6 +69,7 @@ def add_professor(deparment_id):
     return jsonify(data=professor)
 
 @blueprint.route('/departments/<department_id>/professors/<professor_id>', methods=['PUT'])
+@require_permission('update:professors')
 def update_professor(department_id, professor_id):
     """Update professor.
     ---
@@ -83,7 +86,7 @@ def update_professor(department_id, professor_id):
         - professors
     responses:
         200:
-        description: OK
+            description: OK
     """
     professor = req.form.to_dict()
     professor['picture'] = req.files.get('picture', None)
@@ -100,6 +103,7 @@ def update_professor(department_id, professor_id):
     return jsonify(data=professor)
 
 @blueprint.route('/departments/<department_id>/professors/<professor_id>', methods=['DELETE'])
+@require_permission('delete:professors')
 def remove_professor(department_id, professor_id):
     """Remove professor.
     ---
@@ -112,7 +116,7 @@ def remove_professor(department_id, professor_id):
         - professors
     responses:
         200:
-        description: OK
+            description: OK
     """
     repository.remove_professor(department_id, professor_id)
     return jsonify(data={})
