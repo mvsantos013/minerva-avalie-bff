@@ -93,6 +93,7 @@ class TestimonialModel(DynaModel):
         studentId = fields.Str(description='Student ID')
         studentName = fields.Str(description='Student name')
         text = fields.Str(description='Content')
+        anonymous = fields.Bool(description='Anonymous', default=False)
         postedAt = fields.Str(description='Post date')
         updatedAt = fields.Str(description='Update date')
 
