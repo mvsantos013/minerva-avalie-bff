@@ -1,7 +1,7 @@
 from uuid import uuid4
 from datetime import datetime, timezone
 from src.lib import utils
-from src.models import ProfessorModel, TestimonialModel
+from src.models import ProfessorModel, TestimonialModel, ReportedTestimonialModel
 from flask import request as req
 
 def fetch_professor_testimonials(department_id, professor_id):
@@ -39,5 +39,31 @@ def update_testimonial(professor_id, testimonial_id, text):
     return testimonial.to_dict()
 
 def remove_testimonial(professor_id, testimonial_id):
+    testimonial = TestimonialModel.get(professorId=professor_id, id=testimonial_id)
+    testimonial.delete()
+
+def report_testimonial(testimonial):
+    testimonial['reportedAt'] = datetime.now(timezone.utc).isoformat()
+    testimonial = ReportedTestimonialModel(**testimonial)
+    testimonial.save()
+    return testimonial.to_dict()
+
+def fetch_reported_testimonials():
+    testimonials = []
+    for testimonial in ReportedTestimonialModel.scan().limit(10000):
+        testimonial = testimonial.to_dict()
+        if('anonymous' in testimonial and testimonial['anonymous'] is True):
+            testimonial['studentName'] = 'Anônimo'
+            testimonial['studentId'] = None
+        testimonials.append(testimonial)
+    return testimonials
+
+def approve_reported_testimonial(professor_id, testimonial_id):
+    testimonial = ReportedTestimonialModel.get(professorId=professor_id, id=testimonial_id)
+    testimonial.delete()
+
+def remove_reported_testimonial(professor_id, testimonial_id):
+    reported_testimonial = ReportedTestimonialModel.get(professorId=professor_id, id=testimonial_id)
+    reported_testimonial.delete()
     testimonial = TestimonialModel.get(professorId=professor_id, id=testimonial_id)
     testimonial.delete()

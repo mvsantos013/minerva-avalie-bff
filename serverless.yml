@@ -401,6 +401,22 @@ resources:
           - AttributeName: id
             KeyType: RANGE
 
+    ProfessorsReportedTestimonialsTable:
+      Type: AWS::DynamoDB::Table
+      Properties:
+        TableName: ${self:service}-${self:provider.stage}-professors-reported-testimonials
+        BillingMode: PAY_PER_REQUEST
+        AttributeDefinitions:
+          - AttributeName: professorId
+            AttributeType: S
+          - AttributeName: id
+            AttributeType: S
+        KeySchema:
+          - AttributeName: professorId
+            KeyType: HASH
+          - AttributeName: id
+            KeyType: RANGE
+
     ProfessorsRatingTable:
       Type: AWS::DynamoDB::Table
       Properties:
