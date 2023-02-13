@@ -1,18 +1,6 @@
-# Copyright 2017-2019 Amazon.com, Inc. or its affiliates. All Rights Reserved.
-#
-# Licensed under the Apache License, Version 2.0 (the "License"). You may not use this file
-# except in compliance with the License. A copy of the License is located at
-#
-#     http://aws.amazon.com/apache2.0/
-#
-# or in the "license" file accompanying this file. This file is distributed on an "AS IS"
-# BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
-# License for the specific language governing permissions and limitations under the License.
-
 import json
 import time
 import urllib.request
-import jwt as pyjwt
 from jose import jwk, jwt
 from jose.utils import base64url_decode
 from src.constants import AWS_REGION, COGNITO_USER_POOL_ID, COGNITO_APP_CLIENT_ID
@@ -69,11 +57,5 @@ def validate_jwt_token(token):
         return False
         
     # now we can use the claims
-    user_data = json.loads(claims['userData'])
-    return claims, user_data['groups'], user_data['permissions']
-
-def unsafe_verify_jwt(token):
-    token = token.replace('Bearer ', '')
-    claims = pyjwt.decode(token, options={"verify_signature": False})
     user_data = json.loads(claims['userData'])
     return claims, user_data

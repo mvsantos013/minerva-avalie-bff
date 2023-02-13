@@ -3,7 +3,7 @@ import traceback
 from flask import Flask, jsonify, request as req
 from flask_cors import CORS
 from flasgger import Swagger
-from src.lib.jwt_verifier import unsafe_verify_jwt
+from src.lib.jwt_verifier import validate_jwt_token
 from src.lib.utils import JSONEncoder
 from src.app.departments import controller as departments_controller
 from src.app.professors import controller as professors_controller
@@ -35,14 +35,14 @@ def set_user():
             return
 
         req.user = {}
-        user, user_data = unsafe_verify_jwt(bearer_token)
-        user['token'] = bearer_token.replace('Bearer ', '')
-        user['id'] = user['sub']
-        user['name'] = user['name'] if 'name' in user else user['email'].split('@')[0]
-        user['email'] = user['email']
-        user['groups'] = user_data['groups']
-        user['permissions'] = user_data['permissions']
-        req.user = user
+        claims, user_data = validate_jwt_token(bearer_token)
+        claims['token'] = bearer_token.replace('Bearer ', '')
+        claims['id'] = claims['sub']
+        claims['name'] = claims['name'] if 'name' in claims else claims['email'].split('@')[0]
+        claims['email'] = claims['email']
+        claims['groups'] = user_data.get('groups', [])
+        claims['permissions'] = user_data.get('permissions', [])
+        req.user = claims
     except Exception as e:
         pass
 
