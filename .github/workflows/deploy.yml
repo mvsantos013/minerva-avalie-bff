@@ -40,4 +40,4 @@ jobs:
       - name: Install Node dependencies
         run: npm install && npm install -g serverless@3.18.2
       - name: Deploy application
-        run: serverless deploy --verbose --stage $STAGE
+        run: serverless deploy --verbose --stage $STAGE --param "GoogleClientId=${{ secrets.DEV_GOOGLE_CLIENT_ID }}" --param "GoogleClientSecret=${{ secrets.DEV_GOOGLE_CLIENT_SECRET }}"
