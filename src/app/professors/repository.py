@@ -1,6 +1,7 @@
 from uuid import uuid4
 from src.models import ProfessorModel
 from src.lib.adapters import s3_adapter
+from src.lib import utils
 from src.constants import BUCKET_FILES
 
 def fetch_professors_by_department(department_id):
@@ -14,7 +15,7 @@ def fetch_professor(department_id, professor_id):
     professor = ProfessorModel.get(departmentId=department_id, id=professor_id)
     if(professor is None):
         raise Exception('Professor not found')
-    if(professor.publicRating is False): # Hide rating summary if it's not public
+    if(professor.publicRating is False and not utils.user_has_group('Admin')): # Hide rating summary if it's not public
         professor.ratingSummary = {}
     return professor.to_dict()
 
