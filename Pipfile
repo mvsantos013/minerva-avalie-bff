@@ -12,7 +12,6 @@ flask = "*"
 flask-cors = "*"
 marshmallow = "==3.15.0"
 dynamorm = "*"
-pyjwt = "*"
 python-jose = {extras = ["cryptography"], version = "*"}
 flasgger = "==0.9.5"
 
