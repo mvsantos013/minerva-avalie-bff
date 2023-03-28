@@ -1,8 +1,9 @@
+from flask import request as req
 from uuid import uuid4
 from datetime import datetime, timezone
 from src.lib import utils
-from src.models import ProfessorModel, TestimonialModel, ReportedTestimonialModel
-from flask import request as req
+from src.app.professors.models import ProfessorModel
+from src.app.professors.testimonials.models import TestimonialModel, ReportedTestimonialModel
 
 def fetch_professor_testimonials(department_id, professor_id):
     professor = ProfessorModel.get(departmentId=department_id, id=professor_id)

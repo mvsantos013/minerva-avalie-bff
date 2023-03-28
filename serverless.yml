@@ -359,10 +359,10 @@ resources:
           - AttributeName: domain
             KeyType: HASH
 
-    DepartmentsTable:
+    OrganizationsTable:
       Type: AWS::DynamoDB::Table
       Properties:
-        TableName: ${self:service}-${self:provider.stage}-departments
+        TableName: ${self:service}-${self:provider.stage}-organizations
         BillingMode: PAY_PER_REQUEST
         AttributeDefinitions:
           - AttributeName: id
@@ -370,6 +370,38 @@ resources:
         KeySchema:
           - AttributeName: id
             KeyType: HASH
+
+    DisciplinesTable:
+      Type: AWS::DynamoDB::Table
+      Properties:
+        TableName: ${self:service}-${self:provider.stage}-disciplines
+        BillingMode: PAY_PER_REQUEST
+        AttributeDefinitions:
+          - AttributeName: organizationId
+            AttributeType: S
+          - AttributeName: id
+            AttributeType: S
+        KeySchema:
+          - AttributeName: organizationId
+            KeyType: HASH
+          - AttributeName: id
+            KeyType: RANGE
+
+    DepartmentsTable:
+      Type: AWS::DynamoDB::Table
+      Properties:
+        TableName: ${self:service}-${self:provider.stage}-departments
+        BillingMode: PAY_PER_REQUEST
+        AttributeDefinitions:
+          - AttributeName: organizationId
+            AttributeType: S
+          - AttributeName: id
+            AttributeType: S
+        KeySchema:
+          - AttributeName: organizationId
+            KeyType: HASH
+          - AttributeName: id
+            KeyType: RANGE
 
     ProfessorsTable:
       Type: AWS::DynamoDB::Table
@@ -386,6 +418,31 @@ resources:
             KeyType: HASH
           - AttributeName: id
             KeyType: RANGE
+
+    ProfessorDisciplinesTable:
+      Type: AWS::DynamoDB::Table
+      Properties:
+        TableName: ${self:service}-${self:provider.stage}-professor-disciplines
+        BillingMode: PAY_PER_REQUEST
+        AttributeDefinitions:
+          - AttributeName: professorId
+            AttributeType: S
+          - AttributeName: disciplineId
+            AttributeType: S
+        KeySchema:
+          - AttributeName: professorId
+            KeyType: HASH
+          - AttributeName: disciplineId
+            KeyType: RANGE
+        GlobalSecondaryIndexes:
+          - IndexName: gsiDisciplineId
+            KeySchema:
+              - AttributeName: disciplineId
+                KeyType: HASH
+              - AttributeName: professorId
+                KeyType: RANGE
+            Projection:
+              ProjectionType: KEYS_ONLY
 
     ProfessorsTestimonialsTable:
       Type: AWS::DynamoDB::Table
@@ -427,10 +484,10 @@ resources:
         AttributeDefinitions:
           - AttributeName: professorId
             AttributeType: S
-          - AttributeName: studentId
+          - AttributeName: createdAt
             AttributeType: S
         KeySchema:
           - AttributeName: professorId
             KeyType: HASH
-          - AttributeName: studentId
+          - AttributeName: createdAt
             KeyType: RANGE

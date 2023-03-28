@@ -1,5 +1,5 @@
 import json
-from src.models import PermissionModel, GroupPermissionModel
+from src.app.auth.models import GroupPermissionModel
 
 
 '''

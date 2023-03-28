@@ -1,4 +1,4 @@
-from src.models import AllowedDomainModel
+from src.app.auth.models import AllowedDomainModel
 
 '''
     This lambda function executes when the user is about to be registered.

@@ -4,8 +4,8 @@ from src.middlewares import require_permission
 
 blueprint = Blueprint('departments', __name__)
 
-@blueprint.route('/departments', methods=['GET'])
-def fetch_departments():
+@blueprint.route('/org/<organization_id>/departments', methods=['GET'])
+def fetch_departments(organization_id):
     """Fetch departments.
     ---
     tags:
@@ -14,10 +14,10 @@ def fetch_departments():
         200:
             description: OK
     """
-    return jsonify(data=repository.fetch_departments())
+    return jsonify(data=repository.fetch_departments(organization_id))
 
-@blueprint.route('/departments/<department_id>', methods=['GET'])
-def fetch_department(department_id):
+@blueprint.route('/org/<organization_id>/departments/<department_id>', methods=['GET'])
+def fetch_department(organization_id, department_id):
     """Fetch department.
     ---
     parameters:
@@ -31,12 +31,12 @@ def fetch_department(department_id):
         200:
             description: OK
     """
-    department = repository.fetch_department(department_id)
+    department = repository.fetch_department(organization_id, department_id)
     return jsonify(data=department)
 
-@blueprint.route('/departments', methods=['POST'])
+@blueprint.route('/org/<organization_id>/departments', methods=['POST'])
 @require_permission('create:departments')
-def add_department():
+def add_department(organization_id):
     """Add department.
     ---
     tags:
@@ -46,12 +46,12 @@ def add_department():
             description: OK
     """
     department = req.get_json()
-    repository.add_department(department)
+    repository.add_department(organization_id, department)
     return jsonify(data=department)
 
-@blueprint.route('/departments/<department_id>', methods=['PUT'])
+@blueprint.route('/org/<organization_id>/departments/<department_id>', methods=['PUT'])
 @require_permission('update:departments')
-def update_department(department_id):
+def update_department(organization_id, department_id):
     """Update department.
     ---
     parameters:
@@ -66,12 +66,12 @@ def update_department(department_id):
             description: OK
     """
     data = req.get_json()
-    repository.update_department(department_id, data)
+    repository.update_department(organization_id, department_id, data)
     return jsonify(data=data)
 
-@blueprint.route('/departments/<department_id>', methods=['DELETE'])
+@blueprint.route('/org/<organization_id>/departments/<department_id>', methods=['DELETE'])
 @require_permission('delete:departments')
-def remove_department(department_id):
+def remove_department(organization_id, department_id):
     """Remove department.
     ---
     parameters:
@@ -85,5 +85,5 @@ def remove_department(department_id):
         200:
             description: OK
     """
-    repository.remove_department(department_id)
+    repository.remove_department(organization_id, department_id)
     return jsonify(data={})

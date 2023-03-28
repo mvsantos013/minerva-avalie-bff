@@ -1,5 +1,5 @@
 from uuid import uuid4
-from src.models import PermissionModel
+from src.app.auth.models import PermissionModel
 
 
 def fetch_permissions():

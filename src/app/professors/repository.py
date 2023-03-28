@@ -1,5 +1,5 @@
 from uuid import uuid4
-from src.models import ProfessorModel
+from src.app.professors.models import ProfessorModel
 from src.lib.adapters import s3_adapter
 from src.lib import utils
 from src.constants import BUCKET_FILES

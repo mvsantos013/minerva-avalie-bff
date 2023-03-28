@@ -1,6 +1,7 @@
 from datetime import datetime, timezone
 from src.lib import utils
-from src.models import ProfessorModel, ProfessorRatingModel
+from src.app.professors.models import ProfessorModel
+from src.app.professors.ratings.models import ProfessorRatingModel
 
 def fetch_professor_ratings(department_id, professor_id):
     """Fetch professor ratings."""

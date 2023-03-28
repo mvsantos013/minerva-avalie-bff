@@ -1,4 +1,4 @@
-from src.models import GroupPermissionModel
+from src.app.auth.models import GroupPermissionModel
 from src.lib.adapters import cognito_adapter
 
 def fetch_groups():

@@ -1,5 +1,5 @@
 from flask import Blueprint, jsonify, request as req
-from src.app.ratings import repository
+from src.app.professors.ratings import repository
 from src.middlewares import require_permission
 
 blueprint = Blueprint('ratings', __name__)
