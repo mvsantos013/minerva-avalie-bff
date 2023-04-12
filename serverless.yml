@@ -476,7 +476,7 @@ resources:
           - AttributeName: id
             KeyType: RANGE
 
-    ProfessorsRatingTable:
+    ProfessorsRatingsTable:
       Type: AWS::DynamoDB::Table
       Properties:
         TableName: ${self:service}-${self:provider.stage}-professors-ratings
@@ -484,10 +484,21 @@ resources:
         AttributeDefinitions:
           - AttributeName: professorId
             AttributeType: S
-          - AttributeName: createdAt
+          - AttributeName: id
+            AttributeType: S
+          - AttributeName: studentId
             AttributeType: S
         KeySchema:
           - AttributeName: professorId
             KeyType: HASH
-          - AttributeName: createdAt
+          - AttributeName: id
             KeyType: RANGE
+        GlobalSecondaryIndexes:
+          - IndexName: gsiStudentId
+            KeySchema:
+              - AttributeName: studentId
+                KeyType: HASH
+              - AttributeName: id
+                KeyType: RANGE
+            Projection:
+              ProjectionType: ALL

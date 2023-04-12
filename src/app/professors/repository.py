@@ -1,5 +1,5 @@
 from uuid import uuid4
-from src.app.professors.models import ProfessorModel
+from src.app.professors.models import ProfessorModel, ProfessorDisciplineModel
 from src.lib.adapters import s3_adapter
 from src.lib import utils
 from src.constants import BUCKET_FILES
@@ -18,6 +18,13 @@ def fetch_professor(department_id, professor_id):
     if(professor.publicRating is False and not utils.user_has_group('Admin')): # Hide rating summary if it's not public
         professor.ratingSummary = {}
     return professor.to_dict()
+
+def fetch_professor_disciplines(department_id, professor_id):
+    professor = ProfessorModel.get(departmentId=department_id, id=professor_id)
+    if(professor is None):
+        raise Exception('Professor not found')
+    disciplines = [e.to_dict() for e in ProfessorDisciplineModel.query(professorId=professor_id).limit(10000)]
+    return disciplines
 
 def add_professor(professor):
     professor['id'] = str(uuid4())

@@ -1,3 +1,4 @@
+from flask import request as req
 from datetime import datetime, timezone
 from src.lib import utils
 from src.app.professors.models import ProfessorModel
@@ -13,7 +14,8 @@ def fetch_professor_ratings(department_id, professor_id):
     ratings = []
     for e in ProfessorRatingModel.query(professorId=professor_id).limit(10000):
         rating = e.to_dict()
-        del rating['studentId'] # Remove student reference from response
+        if(req.user is None or req.user.get('id') != rating['studentId']):
+            del rating['studentId'] # Remove student reference from response
         ratings.append(rating)
     return ratings
 
@@ -26,52 +28,31 @@ def fetch_professor_rating_summary(deparment_id, professor_id):
     return professor.ratingSummary
 
 def fetch_professor_ratings_by_student(professor_id, student_id):
-    ratings = ProfessorRatingModel.get(professorId=professor_id, studentId=student_id)
+    ratings = ProfessorRatingModel.ByStudentId.query(studentId=student_id).limit(10000)
     if(ratings is None):
-        return {}
-    return ratings.to_dict()
+        return []
+    return [r.to_dict() for r in ratings]
 
-def rate_professor(department_id, professor_id, student_id, ratings, comments):
-    if('total' in ratings):
-        del ratings['total']
+def rate_professor(department_id, professor_id, student_id, params):
+    ratings = params.get('ratings')
+    comments = params.get('comments')
+    period = params.get('period')
+    disciplineId = params.get('disciplineId')
 
     professor = ProfessorModel.get(departmentId=department_id, id=professor_id)
-
     if(professor is None):
         raise Exception('Professor not found')
 
-    rating = ProfessorRatingModel.get(professorId=professor_id, studentId=student_id)
-    
-    # If professor has no rating summary, create one with zero values
-    if(not getattr(professor, 'ratingSummary', None)):
-        professor.ratingSummary = {'total': 0}
-        for key in ratings:
-            professor.ratingSummary[key] = 0
-
-    # User is rating for the first time
+    id = f'{disciplineId}:{period}:{student_id}'
+    rating = ProfessorRatingModel.get(professorId=professor_id, id=id)
     if(rating is None):
-        rating = ProfessorRatingModel(professorId=professor_id, studentId=student_id)
-        rating.postedAt = datetime.now(timezone.utc).isoformat()
-        # Update professor rating summary
-        professor.ratingSummary['total'] += 1
-        total = professor.ratingSummary['total']
-        for key in ratings:
-            professor.ratingSummary[key] = ((professor.ratingSummary[key] * (total - 1)) + ratings[key]) / total
-
-    else: # User is updating his rating
-        rating.updatedAt = datetime.now(timezone.utc).isoformat()
-
-        # Update professor rating summary
-        total = professor.ratingSummary['total']
-        for key in ratings:
-            current_rating = rating.ratings[key] if key in rating.ratings else 0
-            professor.ratingSummary[key] = ((professor.ratingSummary[key] * total) - current_rating + ratings[key]) / total
-
-    # Save student individual rating
+        rating = ProfessorRatingModel(professorId=professor_id, id=id, createdAt=datetime.now(timezone.utc).isoformat())
+    rating.disciplineId = disciplineId
+    rating.period = period
+    rating.studentId = student_id
     rating.ratings = ratings
     rating.comments = comments
+    rating.updatedAt = datetime.now(timezone.utc).isoformat()
     rating.save()
-
-    professor.ratingSummary = utils.encode_decimals(professor.ratingSummary)
-    professor.save()
-    return True
+    
+    return rating.to_dict()

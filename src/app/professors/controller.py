@@ -43,6 +43,27 @@ def fetch_professor(department_id, professor_id):
     professor = repository.fetch_professor(department_id, professor_id)
     return jsonify(data=professor)
 
+@blueprint.route('/departments/<department_id>/professors/<professor_id>/disciplines', methods=['GET'])
+def fetch_professor_disciplines(department_id, professor_id):
+    """Fetch professors by department.
+    ---
+    parameters:
+        - name: department_id
+          in: path
+          type: string
+          required: true
+        - name: professor_id
+          in: path
+          type: string
+          required: true
+    tags:
+        - professors
+    responses:
+        200:
+            description: OK
+    """
+    return jsonify(data=repository.fetch_professor_disciplines(department_id, professor_id))
+
 @blueprint.route('/departments/<deparment_id>/professors', methods=['POST'])
 @require_permission('create:professors')
 def add_professor(deparment_id):

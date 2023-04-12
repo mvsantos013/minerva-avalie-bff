@@ -28,7 +28,7 @@ class ProfessorModel(DynaModel):
 
 class ProfessorDisciplineModel(DynaModel):
     class Table:
-        name = f'{SERVICE_NAME}-{ENV}-professors-disciplines'
+        name = f'{SERVICE_NAME}-{ENV}-professor-disciplines'
         hash_key = 'professorId'
         range_key = 'disciplineId'
 

@@ -101,7 +101,6 @@ def rate_professor(department_id, professor_id, student_id):
     if(req.user is None or req.user.get('id', '') != student_id):
         return jsonify(error='Unauthorized'), 401
 
-    ratings = req.get_json().get('ratings', {})
-    comments = req.get_json().get('comments', {})
-    return jsonify(data=repository.rate_professor(department_id, professor_id, student_id, ratings, comments))
+    params = req.get_json()
+    return jsonify(data=repository.rate_professor(department_id, professor_id, student_id, params))
     
