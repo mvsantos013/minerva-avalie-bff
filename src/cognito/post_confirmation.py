@@ -6,7 +6,7 @@ from src.constants import COGNITO_USER_POOL_ID
     It adds the user to the default group.
 '''
 
-STUDENT_GROUP = 'Student'
+INITIAL_GROUP = 'Convidado'
 
 cognito = boto3.client('cognito-idp')
 
@@ -14,6 +14,6 @@ def handler(event, context):
     cognito.admin_add_user_to_group(
         UserPoolId=COGNITO_USER_POOL_ID, 
         Username=event['userName'], 
-        GroupName=STUDENT_GROUP
+        GroupName=INITIAL_GROUP
     )
     return event
