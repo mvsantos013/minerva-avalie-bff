@@ -183,10 +183,10 @@ resources:
           - ALLOW_REFRESH_TOKEN_AUTH
         CallbackURLs:
           - "http://localhost:8080/login/"
-          - "https://minerva-avalie-dev.mvsantos.academy/login/"
+          - "https://minerva-avalie.mvsantos.academy/login/"
         LogoutURLs:
           - "http://localhost:8080/"
-          - "https://minerva-avalie-dev.mvsantos.academy/"
+          - "https://minerva-avalie.mvsantos.academy/"
         EnableTokenRevocation: true
         GenerateSecret: false
         RefreshTokenValidity: 1
