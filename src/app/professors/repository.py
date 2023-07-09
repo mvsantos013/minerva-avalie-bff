@@ -19,6 +19,10 @@ def fetch_professor(department_id, professor_id):
         professor.ratingSummary = {}
     return professor.to_dict()
 
+def fetch_professors_disciplines():
+    disciplines = [e.to_dict() for e in ProfessorDisciplineModel.scan().limit(10000)]
+    return disciplines
+
 def fetch_professor_disciplines(department_id, professor_id):
     professor = ProfessorModel.get(departmentId=department_id, id=professor_id)
     if(professor is None):

@@ -13,7 +13,7 @@ def fetch_discipline(organization_id, discipline_id):
 
 def add_discipline(organization_id, discipline):
     discipline['id'] = str(uuid4())
-    discipline = DisciplineModel(organizationId=organization_id, **discipline)
+    discipline = DisciplineModel(**discipline)
     discipline.save()
 
 def update_discipline(organization_id, discipline_id, data):
