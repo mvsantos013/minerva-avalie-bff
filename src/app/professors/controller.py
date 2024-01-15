@@ -4,32 +4,23 @@ from src.middlewares import require_permission
 
 blueprint = Blueprint('professors', __name__)
 
-@blueprint.route('/departments/<department_id>/professors', methods=['GET'])
-def fetch_professors_by_department(department_id):
-    """Fetch professors by department.
+@blueprint.route('/professors', methods=['GET'])
+def fetch_professors_by_department():
+    """Fetch professors.
     ---
-    parameters:
-        - name: department_id
-          in: path
-          type: string
-          required: true
     tags:
         - professors
     responses:
         200:
             description: OK
     """
-    return jsonify(data=repository.fetch_professors_by_department(department_id))
+    return jsonify(data=repository.fetch_professors_by_department())
 
-@blueprint.route('/departments/<department_id>/professors/<professor_id>', methods=['GET'])
-def fetch_professor(department_id, professor_id):
+@blueprint.route('/professors/<professor_id>', methods=['GET'])
+def fetch_professor(professor_id):
     """Fetch professor.
     ---
     parameters:
-        - name: department_id
-          in: path
-          type: string
-          required: true
         - name: professor_id
           in: path
           type: string
@@ -40,36 +31,15 @@ def fetch_professor(department_id, professor_id):
         200:
             description: OK
     """
-    professor = repository.fetch_professor(department_id, professor_id)
+    professor = repository.fetch_professor(professor_id)
     return jsonify(data=professor)
 
-@blueprint.route('/departments/<department_id>/professors/disciplines', methods=['GET'])
-def fetch_professors_disciplines(department_id):
-    """Fetch professors disciplines.
+
+@blueprint.route('/professors/<professor_id>/disciplines', methods=['GET'])
+def fetch_professor_disciplines(professor_id):
+    """Fetch professors.
     ---
     parameters:
-        - name: department_id
-          in: path
-          type: string
-          required: true
-    tags:
-        - professors
-    responses:
-        200:
-            description: OK
-    """
-    return jsonify(data=repository.fetch_professors_disciplines())
-
-
-@blueprint.route('/departments/<department_id>/professors/<professor_id>/disciplines', methods=['GET'])
-def fetch_professor_disciplines(department_id, professor_id):
-    """Fetch professors by department.
-    ---
-    parameters:
-        - name: department_id
-          in: path
-          type: string
-          required: true
         - name: professor_id
           in: path
           type: string
@@ -80,11 +50,11 @@ def fetch_professor_disciplines(department_id, professor_id):
         200:
             description: OK
     """
-    return jsonify(data=repository.fetch_professor_disciplines(department_id, professor_id))
+    return jsonify(data=repository.fetch_professor_disciplines(professor_id))
 
-@blueprint.route('/departments/<deparment_id>/professors', methods=['POST'])
+@blueprint.route('/professors', methods=['POST'])
 @require_permission('create:professors')
-def add_professor(deparment_id):
+def add_professor():
     """Add professor.
     ---
     tags:
@@ -107,16 +77,12 @@ def add_professor(deparment_id):
     repository.add_professor(professor)
     return jsonify(data=professor)
 
-@blueprint.route('/departments/<department_id>/professors/<professor_id>', methods=['PUT'])
+@blueprint.route('/professors/<professor_id>', methods=['PUT'])
 @require_permission('update:professors')
-def update_professor(department_id, professor_id):
+def update_professor(professor_id):
     """Update professor.
     ---
     parameters:
-        - name: department_id
-          in: path
-          type: string
-          required: true
         - name: professor_id
           in: path
           type: string
@@ -141,21 +107,16 @@ def update_professor(department_id, professor_id):
     repository.update_professor(professor_id, professor)
     return jsonify(data=professor)
 
-@blueprint.route('/departments/<department_id>/professors/<professor_id>', methods=['DELETE'])
+@blueprint.route('/professors/<professor_id>', methods=['DELETE'])
 @require_permission('delete:professors')
-def remove_professor(department_id, professor_id):
+def remove_professor(professor_id):
     """Remove professor.
     ---
-    parameters:
-        - name: department_id
-          in: path
-          type: string
-          required: true
     tags:
         - professors
     responses:
         200:
             description: OK
     """
-    repository.remove_professor(department_id, professor_id)
+    repository.remove_professor(professor_id)
     return jsonify(data={})

@@ -359,10 +359,10 @@ resources:
           - AttributeName: domain
             KeyType: HASH
 
-    OrganizationsTable:
+    DepartmentsTable:
       Type: AWS::DynamoDB::Table
       Properties:
-        TableName: ${self:service}-${self:provider.stage}-organizations
+        TableName: ${self:service}-${self:provider.stage}-departments
         BillingMode: PAY_PER_REQUEST
         AttributeDefinitions:
           - AttributeName: id
@@ -377,28 +377,12 @@ resources:
         TableName: ${self:service}-${self:provider.stage}-disciplines
         BillingMode: PAY_PER_REQUEST
         AttributeDefinitions:
-          - AttributeName: organizationId
+          - AttributeName: departmentId
             AttributeType: S
           - AttributeName: id
             AttributeType: S
         KeySchema:
-          - AttributeName: organizationId
-            KeyType: HASH
-          - AttributeName: id
-            KeyType: RANGE
-
-    DepartmentsTable:
-      Type: AWS::DynamoDB::Table
-      Properties:
-        TableName: ${self:service}-${self:provider.stage}-departments
-        BillingMode: PAY_PER_REQUEST
-        AttributeDefinitions:
-          - AttributeName: organizationId
-            AttributeType: S
-          - AttributeName: id
-            AttributeType: S
-        KeySchema:
-          - AttributeName: organizationId
+          - AttributeName: departmentId
             KeyType: HASH
           - AttributeName: id
             KeyType: RANGE
@@ -409,35 +393,31 @@ resources:
         TableName: ${self:service}-${self:provider.stage}-professors
         BillingMode: PAY_PER_REQUEST
         AttributeDefinitions:
-          - AttributeName: departmentId
-            AttributeType: S
           - AttributeName: id
             AttributeType: S
         KeySchema:
-          - AttributeName: departmentId
-            KeyType: HASH
           - AttributeName: id
-            KeyType: RANGE
+            KeyType: HASH
 
-    ProfessorDisciplinesTable:
+    DisciplinesProfessorsTable:
       Type: AWS::DynamoDB::Table
       Properties:
-        TableName: ${self:service}-${self:provider.stage}-professor-disciplines
+        TableName: ${self:service}-${self:provider.stage}-disciplines-professors
         BillingMode: PAY_PER_REQUEST
         AttributeDefinitions:
           - AttributeName: professorId
             AttributeType: S
-          - AttributeName: disciplineId
+          - AttributeName: departmentIdDisciplineId
             AttributeType: S
         KeySchema:
           - AttributeName: professorId
             KeyType: HASH
-          - AttributeName: disciplineId
+          - AttributeName: departmentIdDisciplineId
             KeyType: RANGE
         GlobalSecondaryIndexes:
           - IndexName: gsiDisciplineId
             KeySchema:
-              - AttributeName: disciplineId
+              - AttributeName: departmentIdDisciplineId
                 KeyType: HASH
               - AttributeName: professorId
                 KeyType: RANGE
@@ -450,14 +430,14 @@ resources:
         TableName: ${self:service}-${self:provider.stage}-professors-testimonials
         BillingMode: PAY_PER_REQUEST
         AttributeDefinitions:
-          - AttributeName: professorId
+          - AttributeName: disciplineIdProfessorId
             AttributeType: S
-          - AttributeName: id
+          - AttributeName: createdAt
             AttributeType: S
         KeySchema:
-          - AttributeName: professorId
+          - AttributeName: disciplineIdProfessorId
             KeyType: HASH
-          - AttributeName: id
+          - AttributeName: createdAt
             KeyType: RANGE
 
     ProfessorsReportedTestimonialsTable:
@@ -466,14 +446,14 @@ resources:
         TableName: ${self:service}-${self:provider.stage}-professors-reported-testimonials
         BillingMode: PAY_PER_REQUEST
         AttributeDefinitions:
-          - AttributeName: professorId
+          - AttributeName: disciplineIdProfessorId
             AttributeType: S
-          - AttributeName: id
+          - AttributeName: createdAt
             AttributeType: S
         KeySchema:
-          - AttributeName: professorId
+          - AttributeName: disciplineIdProfessorId
             KeyType: HASH
-          - AttributeName: id
+          - AttributeName: createdAt
             KeyType: RANGE
 
     ProfessorsRatingsTable:
@@ -482,23 +462,84 @@ resources:
         TableName: ${self:service}-${self:provider.stage}-professors-ratings
         BillingMode: PAY_PER_REQUEST
         AttributeDefinitions:
-          - AttributeName: professorId
-            AttributeType: S
-          - AttributeName: id
+          - AttributeName: disciplineIdProfessorIdPeriod
             AttributeType: S
           - AttributeName: studentId
             AttributeType: S
         KeySchema:
+          - AttributeName: disciplineIdProfessorIdPeriod
+            KeyType: HASH
+          - AttributeName: studentId
+            KeyType: RANGE
+    
+    ProfessorsRatingsSummaryTable:
+      Type: AWS::DynamoDB::Table
+      Properties:
+        TableName: ${self:service}-${self:provider.stage}-professors-ratings-summary
+        BillingMode: PAY_PER_REQUEST
+        AttributeDefinitions:
+          - AttributeName: professorId
+            AttributeType: S
+          - AttributeName: disciplineIdProfessorIdPeriod
+            AttributeType: S
+        KeySchema:
           - AttributeName: professorId
             KeyType: HASH
-          - AttributeName: id
+          - AttributeName: disciplineIdProfessorIdPeriod
             KeyType: RANGE
-        GlobalSecondaryIndexes:
-          - IndexName: gsiStudentId
-            KeySchema:
-              - AttributeName: studentId
-                KeyType: HASH
-              - AttributeName: id
-                KeyType: RANGE
-            Projection:
-              ProjectionType: ALL
+    
+    DisciplinesRatingsTable:
+      Type: AWS::DynamoDB::Table
+      Properties:
+        TableName: ${self:service}-${self:provider.stage}-disciplines-ratings
+        BillingMode: PAY_PER_REQUEST
+        AttributeDefinitions:
+          - AttributeName: disciplineIdProfessorIdPeriod
+            AttributeType: S
+          - AttributeName: studentId
+            AttributeType: S
+        KeySchema:
+          - AttributeName: disciplineIdProfessorIdPeriod
+            KeyType: HASH
+          - AttributeName: studentId
+            KeyType: RANGE
+    
+    DisciplinesRatingsSummaryTable:
+      Type: AWS::DynamoDB::Table
+      Properties:
+        TableName: ${self:service}-${self:provider.stage}-disciplines-ratings-summary
+        BillingMode: PAY_PER_REQUEST
+        AttributeDefinitions:
+          - AttributeName: disciplineId
+            AttributeType: S
+          - AttributeName: disciplineIdProfessorIdPeriod
+            AttributeType: S
+        KeySchema:
+          - AttributeName: disciplineId
+            KeyType: HASH
+          - AttributeName: disciplineIdProfessorIdPeriod
+            KeyType: RANGE
+    
+    DisciplinesQuestionsTable:
+      Type: AWS::DynamoDB::Table
+      Properties:
+        TableName: ${self:service}-${self:provider.stage}-disciplines-questions
+        BillingMode: PAY_PER_REQUEST
+        AttributeDefinitions:
+          - AttributeName: id
+            AttributeType: S
+        KeySchema:
+          - AttributeName: id
+            KeyType: HASH
+    
+    ProfessorsQuestionsTable:
+      Type: AWS::DynamoDB::Table
+      Properties:
+        TableName: ${self:service}-${self:provider.stage}-professors-questions
+        BillingMode: PAY_PER_REQUEST
+        AttributeDefinitions:
+          - AttributeName: id
+            AttributeType: S
+        KeySchema:
+          - AttributeName: id
+            KeyType: HASH
