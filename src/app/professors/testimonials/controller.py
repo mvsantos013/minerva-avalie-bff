@@ -4,8 +4,8 @@ from src.middlewares import require_permission
 
 blueprint = Blueprint('testimonials', __name__)
 
-@blueprint.route('/professors/<professor_id>/testimonials', methods=['GET'])
-def fetch_professor_testimonials(professor_id):
+@blueprint.route('/professors/<professor_id>/testimonials/<discipline_id>', methods=['GET'])
+def fetch_professor_testimonials(professor_id, discipline_id):
     """Fetch testimonials by professor.
     ---
     parameters:
@@ -13,8 +13,8 @@ def fetch_professor_testimonials(professor_id):
           in: path
           type: string
           required: true
-        - name: departmentId
-          in: query
+        - name: discipline_id
+          in: path
           type: string
           required: true
     tags:
@@ -23,18 +23,25 @@ def fetch_professor_testimonials(professor_id):
         200:
             description: OK
     """
-    department_id = req.args.get('departmentId', '')
-    return jsonify(data=repository.fetch_professor_testimonials(department_id, professor_id))
+    return jsonify(data=repository.fetch_professor_testimonials(discipline_id, professor_id))
 
-@blueprint.route('/professors/<professor_id>/testimonials', methods=['POST'])
+@blueprint.route('/professors/<professor_id>/testimonials/<discipline_id>', methods=['POST'])
 @require_permission('post:professor-testimonial')
-def add_professor_testimonial(professor_id):
+def add_professor_testimonial(professor_id, discipline_id):
     """Add testimonial.
     ---
     parameters:
         - name: professor_id
           in: path
           type: string
+          required: true
+        - name: discipline_id
+          in: path
+          type: string
+          required: true
+        - name: testimonial
+          in: body
+          type: object
           required: true
     tags:
         - testimonials
@@ -44,7 +51,7 @@ def add_professor_testimonial(professor_id):
     """
     # Only the own user can post a testimonial
     student_id = req.get_json().get('studentId', '')
-    if(req.user is None or req.user.get('id', '') != student_id):
+    if(req.user is None or req.user.get('id') != student_id):
         return jsonify(error='Unauthorized'), 401
 
     testimonial = req.get_json().get('text', '')
@@ -55,9 +62,9 @@ def add_professor_testimonial(professor_id):
     testimonial = repository.add_testimonial(req.get_json())
     return jsonify(data=testimonial)
 
-@blueprint.route('/professors/<professor_id>/testimonials/<testimonial_id>', methods=['PUT'])
+@blueprint.route('/professors/<professor_id>/testimonials/<discipline_id>', methods=['PUT'])
 @require_permission('post:professor-testimonial')
-def update_professor_testimonial(professor_id, testimonial_id):
+def update_professor_testimonial(professor_id, discipline_id):
     """Update testimonial.
     ---
     parameters:
@@ -65,9 +72,13 @@ def update_professor_testimonial(professor_id, testimonial_id):
           in: path
           type: string
           required: true
-        - name: testimonial_id
+        - name: discipline_id
           in: path
           type: string
+          required: true
+        - name: testimonial
+          in: body
+          type: object
           required: true
     tags:
         - testimonials
@@ -75,22 +86,23 @@ def update_professor_testimonial(professor_id, testimonial_id):
         200:
             description: OK
     """
-    # Only the own user can update it's testimonial
-    student_id = req.get_json().get('studentId', '')
-    if(req.user is None or req.user.get('id', '') != student_id):
+    # Only the own user can update its testimonial
+    student_id = req.get_json().get('studentId')
+    if(req.user is None or req.user.get('id') != student_id):
         return jsonify(error='Unauthorized'), 401
 
+    testimonial = req.get_json()
     text = req.get_json().get('text', '')
 
     if(len(text.replace(' ', '')) < 6):
         return jsonify(error='Depoimento deve ter ao menos 6 caracteres.'), 400
 
-    testimonial = repository.update_testimonial(professor_id, testimonial_id, text)
+    testimonial = repository.update_testimonial(testimonial)
     return jsonify(data=testimonial)
 
-@blueprint.route('/professors/<professor_id>/testimonials/<testimonial_id>', methods=['DELETE'])
+@blueprint.route('/professors/<professor_id>/testimonials/<discipline_id>', methods=['DELETE'])
 @require_permission('post:professor-testimonial')
-def remove_professor_testimonial(professor_id, testimonial_id):
+def remove_professor_testimonial(professor_id, discipline_id):
     """Remove testimonial.
     ---
     parameters:
@@ -98,9 +110,13 @@ def remove_professor_testimonial(professor_id, testimonial_id):
           in: path
           type: string
           required: true
-        - name: testimonial_id
+        - name: discipline_id
           in: path
           type: string
+          required: true
+        - name: testimonial
+          in: body
+          type: object
           required: true
     tags:
         - testimonials
@@ -108,16 +124,17 @@ def remove_professor_testimonial(professor_id, testimonial_id):
         200:
             description: OK
     """
-    # Only the own user can remove it's testimonial
+    # Only the own user can remove its testimonial
     student_id = req.get_json().get('studentId', '')
     if(req.user is None or req.user.get('id', '') != student_id):
         return jsonify(error='Unauthorized'), 401
 
-    repository.remove_testimonial(professor_id, testimonial_id)
+    testimonial = req.get_json()
+    repository.remove_testimonial(testimonial)
     return jsonify(data={})
 
-@blueprint.route('/professors/<professor_id>/testimonials/<testimonial_id>/report', methods=['POST'])
-def report_testimonial(professor_id, testimonial_id):
+@blueprint.route('/professors/<professor_id>/testimonials/<discipline_id>/report', methods=['POST'])
+def report_testimonial(professor_id, discipline_id):
     """Report testimonial.
     ---
     parameters:
@@ -125,9 +142,13 @@ def report_testimonial(professor_id, testimonial_id):
           in: path
           type: string
           required: true
-        - name: testimonial_id
+        - name: discipline_id
           in: path
           type: string
+          required: true
+        - name: testimonial
+          in: body
+          type: object
           required: true
     tags:
         - testimonials
@@ -136,8 +157,9 @@ def report_testimonial(professor_id, testimonial_id):
             description: OK
     """
     testimonial = req.get_json()
+    testimonial['disciplineIdProfessorId'] = f'{discipline_id}:{professor_id}'
     testimonial['professorId'] = professor_id
-    testimonial['id'] = testimonial_id
+    testimonial['disciplineId'] = discipline_id
     testimonial = repository.report_testimonial(testimonial)
     return jsonify(data=testimonial)
 
@@ -154,9 +176,9 @@ def fetch_reported_testimonials():
     """
     return jsonify(data=repository.fetch_reported_testimonials())
 
-@blueprint.route('/professors/<professor_id>/testimonials/reported/<testimonial_id>/approve', methods=['POST'])
+@blueprint.route('/professors/<professor_id>/testimonials/<discipline_id>/reported/approve', methods=['POST'])
 @require_permission('manage:testimonial-reports')
-def approve_reported_testimonial(professor_id, testimonial_id):
+def approve_reported_testimonial(professor_id, discipline_id):
     """Approve reported testimonial.
     ---
     parameters:
@@ -164,9 +186,13 @@ def approve_reported_testimonial(professor_id, testimonial_id):
           in: path
           type: string
           required: true
-        - name: testimonial_id
+        - name: discipline_id
           in: path
           type: string
+          required: true
+        - name: testimonial
+          in: body
+          type: object
           required: true
     tags:
         - testimonials
@@ -174,12 +200,13 @@ def approve_reported_testimonial(professor_id, testimonial_id):
         200:
             description: OK
     """
-    testimonial = repository.approve_reported_testimonial(professor_id, testimonial_id)
+    testimonial = req.get_json()
+    testimonial = repository.approve_reported_testimonial(testimonial)
     return jsonify(data=testimonial)
 
-@blueprint.route('/professors/<professor_id>/testimonials/reported/<testimonial_id>/remove', methods=['DELETE'])
+@blueprint.route('/professors/<professor_id>/testimonials/<discipline_id>/reported/remove', methods=['DELETE'])
 @require_permission('manage:testimonial-reports')
-def remove_reported_testimonial(professor_id, testimonial_id):
+def remove_reported_testimonial(professor_id, discipline_id):
     """Remove reported testimonial.
     ---
     parameters:
@@ -187,9 +214,13 @@ def remove_reported_testimonial(professor_id, testimonial_id):
           in: path
           type: string
           required: true
-        - name: testimonial_id
+        - name: discipline_id
           in: path
           type: string
+          required: true
+        - name: testimonial
+          in: body
+          type: object
           required: true
     tags:
         - testimonials
@@ -197,5 +228,6 @@ def remove_reported_testimonial(professor_id, testimonial_id):
         200:
             description: OK
     """
-    testimonial = repository.remove_reported_testimonial(professor_id, testimonial_id)
+    testimonial = req.get_json()
+    testimonial = repository.remove_reported_testimonial(testimonial)
     return jsonify(data=testimonial)

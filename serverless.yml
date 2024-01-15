@@ -455,6 +455,38 @@ resources:
             KeyType: HASH
           - AttributeName: createdAt
             KeyType: RANGE
+    
+    DisciplinesTestimonialsTable:
+      Type: AWS::DynamoDB::Table
+      Properties:
+        TableName: ${self:service}-${self:provider.stage}-disciplines-testimonials
+        BillingMode: PAY_PER_REQUEST
+        AttributeDefinitions:
+          - AttributeName: departmentIdDisciplineId
+            AttributeType: S
+          - AttributeName: createdAt
+            AttributeType: S
+        KeySchema:
+          - AttributeName: departmentIdDisciplineId
+            KeyType: HASH
+          - AttributeName: createdAt
+            KeyType: RANGE
+
+    DisciplinesReportedTestimonialsTable:
+      Type: AWS::DynamoDB::Table
+      Properties:
+        TableName: ${self:service}-${self:provider.stage}-disciplines-reported-testimonials
+        BillingMode: PAY_PER_REQUEST
+        AttributeDefinitions:
+          - AttributeName: departmentIdDisciplineId
+            AttributeType: S
+          - AttributeName: createdAt
+            AttributeType: S
+        KeySchema:
+          - AttributeName: departmentIdDisciplineId
+            KeyType: HASH
+          - AttributeName: createdAt
+            KeyType: RANGE
 
     ProfessorsRatingsTable:
       Type: AWS::DynamoDB::Table
@@ -520,22 +552,10 @@ resources:
           - AttributeName: disciplineIdProfessorIdPeriod
             KeyType: RANGE
     
-    DisciplinesQuestionsTable:
+    QuestionsTable:
       Type: AWS::DynamoDB::Table
       Properties:
-        TableName: ${self:service}-${self:provider.stage}-disciplines-questions
-        BillingMode: PAY_PER_REQUEST
-        AttributeDefinitions:
-          - AttributeName: id
-            AttributeType: S
-        KeySchema:
-          - AttributeName: id
-            KeyType: HASH
-    
-    ProfessorsQuestionsTable:
-      Type: AWS::DynamoDB::Table
-      Properties:
-        TableName: ${self:service}-${self:provider.stage}-professors-questions
+        TableName: ${self:service}-${self:provider.stage}-questions
         BillingMode: PAY_PER_REQUEST
         AttributeDefinitions:
           - AttributeName: id
