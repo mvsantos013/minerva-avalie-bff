@@ -3,7 +3,7 @@ from src.app.models import QuestionModel
 
 
 def fetch_questions():
-    items = [e.to_dict() for e in QuestionModel.query().limit(10000)]
+    items = [e.to_dict() for e in QuestionModel.scan().limit(10000)]
     return items
 
 def add_question(question):

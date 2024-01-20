@@ -7,12 +7,12 @@ from src.lib.jwt_verifier import validate_jwt_token
 from src.lib.utils import JSONEncoder
 from src.app.auth.groups import controller as groups_controller
 from src.app.auth.permissions import controller as permissions_controller
-from src.app.organizations import controller as organizations_controller
+from src.app.configurations import controller as configurations_controller
 from src.app.departments import controller as departments_controller
 from src.app.disciplines import controller as disciplines_controller
 from src.app.professors import controller as professors_controller
-from src.app.professors.testimonials import controller as testimonials_controller
-from src.app.professors.ratings import controller as ratings_controller
+from src.app.professors.testimonials import controller as professors_testimonials_controller
+from src.app.questions import controller as questions_controller
 
 app = Flask(__name__)
 CORS(app)
@@ -20,14 +20,14 @@ app.config['JSON_SORT_KEYS'] = False
 app.json_encoder = JSONEncoder
 
 # Register routes
+app.register_blueprint(configurations_controller.blueprint, url_prefix='/api/v1')
 app.register_blueprint(groups_controller.blueprint, url_prefix='/api/v1/auth')
 app.register_blueprint(permissions_controller.blueprint, url_prefix='/api/v1/auth')
-app.register_blueprint(organizations_controller.blueprint, url_prefix='/api/v1')
 app.register_blueprint(departments_controller.blueprint, url_prefix='/api/v1')
 app.register_blueprint(disciplines_controller.blueprint, url_prefix='/api/v1')
 app.register_blueprint(professors_controller.blueprint, url_prefix='/api/v1')
-app.register_blueprint(testimonials_controller.blueprint, url_prefix='/api/v1')
-app.register_blueprint(ratings_controller.blueprint, url_prefix='/api/v1')
+app.register_blueprint(professors_testimonials_controller.blueprint, url_prefix='/api/v1')
+app.register_blueprint(questions_controller.blueprint, url_prefix='/api/v1')
 
 # Load user details into request object
 @app.before_request

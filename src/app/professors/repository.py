@@ -1,5 +1,7 @@
 from uuid import uuid4
-from src.app.models import ProfessorModel, DisciplineProfessorModel
+from flask import request as req
+from src.lib import utils
+from src.app.models import ProfessorModel, DisciplineProfessorModel, ProfessorTestimonialModel, ProfessorRatingSummaryModel
 from src.lib.adapters import s3_adapter
 from src.constants import BUCKET_FILES
 
@@ -17,6 +19,25 @@ def fetch_professor_disciplines(professor_id):
         raise Exception('Professor not found')
     disciplines = [e.to_dict() for e in DisciplineProfessorModel.query(professorId=professor_id).limit(10000)]
     return disciplines
+
+def fetch_professor_testimonials(discipline_id, professor_id):
+    professor = ProfessorModel.get(id=professor_id)
+    if(professor is None):
+        raise Exception('Professor not found')
+    if(professor.hasPublicTestimonials is False and not utils.user_has_group('Admin')): # Hide testimonials if it's not public
+        return []
+    testimonials = []
+    user_id = req.user.get('id') if req.user else None 
+
+    for testimonial in ProfessorTestimonialModel.query(disciplineIdProfessorId=f'{discipline_id}:{professor_id}').limit(10000):
+        testimonial = testimonial.to_dict()
+        if(testimonial.get('anonymous') is True):
+            testimonial['studentName'] = 'Anônimo'
+            if(testimonial['studentId'] != user_id): # Hide ids that are not the user's
+                testimonial['studentId'] = None
+        testimonials.append(testimonial)
+        
+    return testimonials
 
 def add_professor(professor):
     professor['id'] = str(uuid4())
@@ -59,3 +80,7 @@ def remove_professor(professor_id):
             s3_adapter.delete_file(s3_path)
 
     professor.delete()
+
+def fetch_professor_ratings_of_discipline(discipline_id):
+    items = [e.to_dict() for e in ProfessorRatingSummaryModel.ByDiscipline.query(disciplineId=discipline_id).limit(10000)]
+    return items

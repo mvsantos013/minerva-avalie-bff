@@ -52,6 +52,27 @@ def fetch_professor_disciplines(professor_id):
     """
     return jsonify(data=repository.fetch_professor_disciplines(professor_id))
 
+@blueprint.route('/professors/<professor_id>/testimonials/<discipline_id>', methods=['GET'])
+def fetch_professor_testimonials(professor_id, discipline_id):
+    """Fetch testimonials by professor.
+    ---
+    parameters:
+        - name: professor_id
+          in: path
+          type: string
+          required: true
+        - name: discipline_id
+          in: path
+          type: string
+          required: true
+    tags:
+        - testimonials
+    responses:
+        200:
+            description: OK
+    """
+    return jsonify(data=repository.fetch_professor_testimonials(discipline_id, professor_id))
+
 @blueprint.route('/professors', methods=['POST'])
 @require_permission('create:professors')
 def add_professor():
@@ -120,3 +141,15 @@ def remove_professor(professor_id):
     """
     repository.remove_professor(professor_id)
     return jsonify(data={})
+
+@blueprint.route('/professors/ratings/<discipline_id>/summary', methods=['GET'])
+def fetch_professor_ratings_of_discipline(discipline_id):
+    """Fetch professor ratings of discipline.
+    ---
+    tags:
+        - testimonials
+    responses:
+        200:
+            description: OK
+    """
+    return jsonify(data=repository.fetch_professor_ratings_of_discipline(discipline_id))

@@ -5,7 +5,7 @@ from src.middlewares import require_permission
 blueprint = Blueprint('departments', __name__)
 
 @blueprint.route('/departments', methods=['GET'])
-def fetch_departments(organization_id):
+def fetch_departments():
     """Fetch departments.
     ---
     tags:

@@ -72,6 +72,8 @@ functions:
           cors: true
           method: ANY
           path: "{proxy+}"
+  aggregator:
+    handler: src/app/aggregator.handler
   cognitoPreSignup:
     handler: src/cognito/pre_signup.handler
   cognitoPostConfirmation:
@@ -319,6 +321,18 @@ resources:
         Principal: "cognito-idp.amazonaws.com"
         SourceArn: !GetAtt CognitoUserPool.Arn
 
+    ConfigurationsTable:
+      Type: AWS::DynamoDB::Table
+      Properties:
+        TableName: ${self:service}-${self:provider.stage}-configurations
+        BillingMode: PAY_PER_REQUEST
+        AttributeDefinitions:
+          - AttributeName: name
+            AttributeType: S
+        KeySchema:
+          - AttributeName: name
+            KeyType: HASH
+
     PermissionsTable:
       Type: AWS::DynamoDB::Table
       Properties:
@@ -432,12 +446,12 @@ resources:
         AttributeDefinitions:
           - AttributeName: disciplineIdProfessorId
             AttributeType: S
-          - AttributeName: createdAt
+          - AttributeName: studentId
             AttributeType: S
         KeySchema:
           - AttributeName: disciplineIdProfessorId
             KeyType: HASH
-          - AttributeName: createdAt
+          - AttributeName: studentId
             KeyType: RANGE
 
     ProfessorsReportedTestimonialsTable:
@@ -448,12 +462,12 @@ resources:
         AttributeDefinitions:
           - AttributeName: disciplineIdProfessorId
             AttributeType: S
-          - AttributeName: createdAt
+          - AttributeName: studentId
             AttributeType: S
         KeySchema:
           - AttributeName: disciplineIdProfessorId
             KeyType: HASH
-          - AttributeName: createdAt
+          - AttributeName: studentId
             KeyType: RANGE
     
     DisciplinesTestimonialsTable:
@@ -462,14 +476,14 @@ resources:
         TableName: ${self:service}-${self:provider.stage}-disciplines-testimonials
         BillingMode: PAY_PER_REQUEST
         AttributeDefinitions:
-          - AttributeName: departmentIdDisciplineId
+          - AttributeName: disciplineId
             AttributeType: S
-          - AttributeName: createdAt
+          - AttributeName: professorIdStudentId
             AttributeType: S
         KeySchema:
-          - AttributeName: departmentIdDisciplineId
+          - AttributeName: disciplineId
             KeyType: HASH
-          - AttributeName: createdAt
+          - AttributeName: professorIdStudentId
             KeyType: RANGE
 
     DisciplinesReportedTestimonialsTable:
@@ -478,14 +492,14 @@ resources:
         TableName: ${self:service}-${self:provider.stage}-disciplines-reported-testimonials
         BillingMode: PAY_PER_REQUEST
         AttributeDefinitions:
-          - AttributeName: departmentIdDisciplineId
+          - AttributeName: disciplineId
             AttributeType: S
-          - AttributeName: createdAt
+          - AttributeName: professorIdStudentId
             AttributeType: S
         KeySchema:
-          - AttributeName: departmentIdDisciplineId
+          - AttributeName: disciplineId
             KeyType: HASH
-          - AttributeName: createdAt
+          - AttributeName: professorIdStudentId
             KeyType: RANGE
 
     ProfessorsRatingsTable:
@@ -512,13 +526,22 @@ resources:
         AttributeDefinitions:
           - AttributeName: professorId
             AttributeType: S
-          - AttributeName: disciplineIdProfessorIdPeriod
+          - AttributeName: disciplineId
             AttributeType: S
         KeySchema:
           - AttributeName: professorId
             KeyType: HASH
-          - AttributeName: disciplineIdProfessorIdPeriod
+          - AttributeName: disciplineId
             KeyType: RANGE
+        GlobalSecondaryIndexes:
+          - IndexName: gsiDisciplineId
+            KeySchema:
+              - AttributeName: disciplineId
+                KeyType: HASH
+              - AttributeName: professorId
+                KeyType: RANGE
+            Projection:
+              ProjectionType: ALL
     
     DisciplinesRatingsTable:
       Type: AWS::DynamoDB::Table
@@ -544,13 +567,22 @@ resources:
         AttributeDefinitions:
           - AttributeName: disciplineId
             AttributeType: S
-          - AttributeName: disciplineIdProfessorIdPeriod
+          - AttributeName: professorId
             AttributeType: S
         KeySchema:
           - AttributeName: disciplineId
             KeyType: HASH
-          - AttributeName: disciplineIdProfessorIdPeriod
+          - AttributeName: professorId
             KeyType: RANGE
+        GlobalSecondaryIndexes:
+          - IndexName: gsiProfessorId
+            KeySchema:
+              - AttributeName: professorId
+                KeyType: HASH
+              - AttributeName: disciplineId
+                KeyType: RANGE
+            Projection:
+              ProjectionType: ALL
     
     QuestionsTable:
       Type: AWS::DynamoDB::Table

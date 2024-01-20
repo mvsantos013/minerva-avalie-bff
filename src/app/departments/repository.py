@@ -3,7 +3,7 @@ from src.app.models import DepartmentModel, DisciplineModel
 
 
 def fetch_departments():
-    items = [e.to_dict() for e in DepartmentModel.query().limit(10000)]
+    items = [e.to_dict() for e in DepartmentModel.scan().limit(10000)]
     return items
 
 def fetch_department(department_id):
