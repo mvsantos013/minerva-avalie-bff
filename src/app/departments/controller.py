@@ -49,6 +49,21 @@ def add_department():
     repository.add_department(department)
     return jsonify(data=department)
 
+@blueprint.route('/departments/upload', methods=['POST'])
+@require_permission('create:departments')
+def add_department_from_csv():
+    """Add department from CSV file.
+    ---
+    tags:
+        - departments
+    responses:
+        200:
+            description: OK
+    """
+    file = req.files['file']
+    repository.add_department_from_csv(file)
+    return jsonify(data={'msg': 'success'})
+
 @blueprint.route('/departments/<department_id>', methods=['PUT'])
 @require_permission('update:departments')
 def update_department(department_id):

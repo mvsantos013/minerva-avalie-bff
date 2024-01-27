@@ -61,8 +61,8 @@ class ProfessorModel(DynaModel):
         about = fields.Str(description='Professor extended description', allow_none=True, default='')
         pictureUrl = fields.Str(description='S3 URI picture', allow_none=True, default='')
         hasPublicRating = fields.Bool(description='Ratings are public', default=False)
-        hasPpublicProfessorTestimonials = fields.Bool(description='ProfessorTestimonials are public', default=False)
-        hasPpublicStatistics = fields.Bool(description='Statistics are public', default=False)
+        hasPublicTestimonials = fields.Bool(description='ProfessorTestimonials are public', default=False)
+        hasPublicStatistics = fields.Bool(description='Statistics are public', default=False)
 
 
     class Schema(ProfessorSchema):
@@ -127,6 +127,7 @@ class ReportedProfessorTestimonialModel(DynaModel):
         text = fields.Str(description='Content')
         anonymous = fields.Bool(description='Anonymous', default=False)
         createdAt = fields.Str(description='Post date')
+        reportedAt = fields.Str(description='Report date')
 
     class Schema(ReportedProfessorTestimonialModel):
         def __init__(self, *args, **kwargs):
@@ -170,26 +171,12 @@ class ReportedDisciplineTestimonialModel(DynaModel):
         text = fields.Str(description='Content')
         anonymous = fields.Bool(description='Anonymous', default=False)
         createdAt = fields.Str(description='Post date')
+        reportedAt = fields.Str(description='Report date')
 
     class Schema(ReportedDisciplineTestimonialModel):
         def __init__(self, *args, **kwargs):
             super().__init__(*args, **kwargs)
 
-
-class DisciplineQuestionModel(DynaModel):
-    class Table:
-        name = f'{SERVICE_NAME}-{ENV}-disciplines-questions'
-        hash_key = 'id'
-
-    class DisciplineQuestionSchema(Schema):
-        id = fields.Str(description='ID')
-        question = fields.Str(description='Question')
-        type = fields.Str(description='Type')
-        active = fields.Bool(description='Active', default=False)
-
-    class Schema(DisciplineQuestionSchema):
-        def __init__(self, *args, **kwargs):
-            super().__init__(*args, **kwargs)
 
 class QuestionModel(DynaModel):
     class Table:

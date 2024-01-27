@@ -17,7 +17,7 @@ def fetch_configurations():
     return jsonify(data=repository.fetch_configurations())
 
 @blueprint.route('/configurations', methods=['POST'])
-@require_permission('create:configurations')
+@require_permission('manage:configurations')
 def add_configuration():
     """Add configuration.
     ---
@@ -31,8 +31,8 @@ def add_configuration():
     repository.add_configuration(configuration)
     return jsonify(data=configuration)
 
-@blueprint.route('/configuration/<configuration_id>', methods=['PUT'])
-@require_permission('update:configurations')
+@blueprint.route('/configurations/<configuration_id>', methods=['PUT'])
+@require_permission('manage:configurations')
 def update_configuration(configuration_id):
     """Update configuration.
     ---
@@ -48,11 +48,11 @@ def update_configuration(configuration_id):
             description: OK
     """
     data = req.get_json()
-    repository.update_department(configuration_id, data)
+    repository.update_configuration(configuration_id, data)
     return jsonify(data=data)
 
 @blueprint.route('/configurations/<configuration_id>', methods=['DELETE'])
-@require_permission('delete:configurations')
+@require_permission('manage:configurations')
 def remove_configuration(configuration_id):
     """Remove configuration.
     ---

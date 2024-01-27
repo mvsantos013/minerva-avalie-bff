@@ -17,7 +17,7 @@ def fetch_questions():
     return jsonify(data=repository.fetch_questions())
 
 @blueprint.route('/questions', methods=['POST'])
-@require_permission('create:questions')
+@require_permission('manage:questions')
 def add_question():
     """Add question.
     ---
@@ -31,8 +31,8 @@ def add_question():
     repository.add_question(question)
     return jsonify(data=question)
 
-@blueprint.route('/question/<question_id>', methods=['PUT'])
-@require_permission('update:questions')
+@blueprint.route('/questions/<question_id>', methods=['PUT'])
+@require_permission('manage:questions')
 def update_question(question_id):
     """Update question.
     ---
@@ -48,11 +48,11 @@ def update_question(question_id):
             description: OK
     """
     data = req.get_json()
-    repository.update_department(question_id, data)
+    repository.update_question(question_id, data)
     return jsonify(data=data)
 
 @blueprint.route('/questions/<question_id>', methods=['DELETE'])
-@require_permission('delete:questions')
+@require_permission('manage:questions')
 def remove_question(question_id):
     """Remove question.
     ---

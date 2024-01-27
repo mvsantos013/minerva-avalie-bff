@@ -1,4 +1,4 @@
-from uuid import uuid4
+import pandas as pd
 from src.app.models import DepartmentModel, DisciplineModel
 
 
@@ -11,9 +11,12 @@ def fetch_department(department_id):
     return department.to_dict()
 
 def add_department(department):
-    department['id'] = str(uuid4())
     department = DepartmentModel(**department)
     department.save()
+
+def add_department_from_csv(file):
+    df = pd.read_csv(file)
+    print(df)
 
 def update_department(department_id, data):
     data['id'] = department_id

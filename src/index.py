@@ -11,7 +11,6 @@ from src.app.configurations import controller as configurations_controller
 from src.app.departments import controller as departments_controller
 from src.app.disciplines import controller as disciplines_controller
 from src.app.professors import controller as professors_controller
-from src.app.professors.testimonials import controller as professors_testimonials_controller
 from src.app.questions import controller as questions_controller
 
 app = Flask(__name__)
@@ -26,7 +25,6 @@ app.register_blueprint(permissions_controller.blueprint, url_prefix='/api/v1/aut
 app.register_blueprint(departments_controller.blueprint, url_prefix='/api/v1')
 app.register_blueprint(disciplines_controller.blueprint, url_prefix='/api/v1')
 app.register_blueprint(professors_controller.blueprint, url_prefix='/api/v1')
-app.register_blueprint(professors_testimonials_controller.blueprint, url_prefix='/api/v1')
 app.register_blueprint(questions_controller.blueprint, url_prefix='/api/v1')
 
 # Load user details into request object

@@ -2,11 +2,11 @@ import boto3
 import json
 from uuid import uuid4
 from flask import request as req
-from datetime import datetime
+from datetime import datetime, timezone
 from src.constants import SERVICE_NAME, ENV
 from src.app.models import (DisciplineModel, DisciplineProfessorModel, ProfessorModel, 
     DisciplineTestimonialModel, ProfessorTestimonialModel,
-    DisciplineRatingModel, ProfessorRatingModel, DisciplineRatingSummaryModel)
+    DisciplineRatingModel, ProfessorRatingModel, DisciplineRatingSummaryModel, ReportedDisciplineTestimonialModel)
 
 
 def fetch_disciplines(department_id):
@@ -142,3 +142,38 @@ def post_evaluation(data, user):
 def fetch_discipline_ratings(discipline_id):
     items = [e.to_dict() for e in DisciplineRatingSummaryModel.query(disciplineId=discipline_id).limit(10000)]
     return items
+
+
+def remove_testimonial(testimonial):
+    id = f"{testimonial['professorId']}:{testimonial['studentId']}"
+    item = DisciplineTestimonialModel.get(disciplineId=testimonial['disciplineId'], professorIdStudentId=id)
+    # Only the own user can remove its testimonial
+    if(item.studentId != req.user.get('id')):
+        raise Exception('Unauthorized')
+    item.delete()
+
+def report_testimonial(testimonial):
+    testimonial['reportedAt'] = datetime.now(timezone.utc).isoformat()
+    testimonial = ReportedDisciplineTestimonialModel(**testimonial)
+    testimonial.save()
+    return testimonial.to_dict()
+
+def fetch_reported_testimonials():
+    testimonials = []
+    for testimonial in ReportedDisciplineTestimonialModel.scan().limit(10000):
+        testimonial = testimonial.to_dict()
+        if(testimonial.get('anonymous') is True):
+            testimonial['studentName'] = 'Anônimo'
+            testimonial['studentId'] = None
+        testimonials.append(testimonial)
+    return testimonials
+
+def approve_reported_testimonial(testimonial):
+    testimonial = ReportedDisciplineTestimonialModel.get(disciplineIdProfessorId=testimonial.disciplineIdProfessorId, createdAt=testimonial.createdAt)
+    testimonial.delete()
+
+def remove_reported_testimonial(testimonial):
+    reported_testimonial = ReportedDisciplineTestimonialModel.get(disciplineIdProfessorId=testimonial.disciplineIdProfessorId, createdAt=testimonial.createdAt)
+    reported_testimonial.delete()
+    testimonial = DisciplineTestimonialModel.get(disciplineIdProfessorId=testimonial.disciplineIdProfessorId, createdAt=testimonial.createdAt)
+    testimonial.delete()

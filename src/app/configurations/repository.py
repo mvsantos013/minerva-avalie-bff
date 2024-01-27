@@ -3,7 +3,7 @@ from src.app.models import ConfigurationModel
 
 
 def fetch_configurations():
-    items = [e.to_dict() for e in ConfigurationModel.query().limit(10000)]
+    items = [e.to_dict() for e in ConfigurationModel.scan().limit(10000)]
     return items
 
 def add_configuration(configuration):
