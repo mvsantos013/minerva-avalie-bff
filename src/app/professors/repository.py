@@ -1,9 +1,11 @@
+import pandas as pd
+import json
 from uuid import uuid4
 from flask import request as req
 from src.lib import utils
 from datetime import datetime, timezone
 from src.app.models import (ProfessorModel, DisciplineProfessorModel, ProfessorTestimonialModel, 
-    ProfessorRatingSummaryModel, ReportedProfessorTestimonialModel)
+    ProfessorRatingSummaryModel, ReportedProfessorTestimonialModel, DepartmentModel)
 from src.lib.adapters import s3_adapter
 from src.constants import BUCKET_FILES
 
@@ -53,8 +55,25 @@ def add_professor(professor):
         s3_adapter.upload_file(s3_path, picture)
         professor['pictureUrl'] = f'https://{BUCKET_FILES}.s3.amazonaws.com/{s3_path}'
 
+    del professor['disciplinesToAdd']
+    del professor['disciplinesToRemove']
+
     professor = ProfessorModel(**professor)
     professor.save()
+
+def add_professors_from_csv(file):
+    df = pd.read_csv(file, sep=',')
+    if(sorted(df.columns) != sorted(['departmentId', 'name', 'description', 'about', 'hasPublicRating', 'hasPublicTestimonials', 'hasPublicStatistics'])):
+        raise Exception('Invalid CSV file.')
+    departments = [e.id for e in DepartmentModel.scan().limit(10000)]
+    if(not all([e in departments for e in df.departmentId.unique()])):
+        deps = [e for e in df.departmentId.unique() if e not in departments]
+        raise Exception(f'Departamento(s) inexistente(s): {deps}.')
+
+    df['id'] = [str(uuid4()) for _ in range(len(df))]
+
+    rows = df.to_dict('records')
+    ProfessorModel.put_batch(*rows)
 
 def update_professor(professor_id, data):
     data['id'] = professor_id
@@ -69,8 +88,18 @@ def update_professor(professor_id, data):
         s3_adapter.upload_file(s3_path, picture)
         data['pictureUrl'] = f'https://{BUCKET_FILES}.s3.amazonaws.com/{s3_path}'
 
+    disciplines_to_add = json.loads(data.get('disciplinesToAdd', '[]'))
+    disciplines_to_remove = json.loads(data.get('disciplinesToRemove', '[]'))
+    del data['disciplinesToAdd']
+    del data['disciplinesToRemove']
+
     professor.update(**data)
     professor.save()
+
+    if(len(disciplines_to_add) > 0):
+        DisciplineProfessorModel.put_batch(*disciplines_to_add)
+    for pd in disciplines_to_remove:
+        DisciplineProfessorModel.Table.delete_item(**pd)
 
 def remove_professor(professor_id):
     professor = ProfessorModel.get(id=professor_id)
@@ -83,8 +112,13 @@ def remove_professor(professor_id):
 
     professor.delete()
 
-def fetch_professor_ratings_of_discipline(discipline_id):
-    items = [e.to_dict() for e in ProfessorRatingSummaryModel.ByDiscipline.query(disciplineId=discipline_id).limit(10000)]
+def fetch_discipline_professors_ratings_summary(department_id, discipline_id):
+    id = f"{department_id}:{discipline_id}"
+    discipline_professors_ids = [{'id': e.professorId} for e in DisciplineProfessorModel.ByDiscipline.query(departmentIdDisciplineId=id).limit(1000)]
+    professors = ProfessorModel.get_batch(keys=discipline_professors_ids, attrs='id,hasPublicRating')
+    professors_public_ratings = {e.id: e.hasPublicRating for e in professors}
+    ratings_summary = ProfessorRatingSummaryModel.ByDiscipline.query(disciplineId=discipline_id).limit(10000)
+    items = [e.to_dict() for e in ratings_summary if professors_public_ratings.get(e.professorId) is True]
     return items
 
 

@@ -1,11 +1,12 @@
 import boto3
 import json
+import pandas as pd
 from uuid import uuid4
 from flask import request as req
 from datetime import datetime, timezone
 from src.constants import SERVICE_NAME, ENV
 from src.app.models import (DisciplineModel, DisciplineProfessorModel, ProfessorModel, 
-    DisciplineTestimonialModel, ProfessorTestimonialModel,
+    DisciplineTestimonialModel, ProfessorTestimonialModel, DepartmentModel,
     DisciplineRatingModel, ProfessorRatingModel, DisciplineRatingSummaryModel, ReportedDisciplineTestimonialModel)
 
 
@@ -43,6 +44,18 @@ def add_discipline(department_id, discipline):
     discipline = DisciplineModel(**discipline)
     discipline.save()
 
+def add_discipline_from_csv(file):
+    df = pd.read_csv(file, sep=',')
+    if(sorted(df.columns) != sorted(['id', 'departmentId', 'name', 'description'])):
+        raise Exception('Invalid CSV file.')
+    departments = [e.id for e in DepartmentModel.scan().limit(10000)]
+    if(not all([e in departments for e in df.departmentId.unique()])):
+        deps = [e for e in df.departmentId.unique() if e not in departments]
+        raise Exception(f'Departamento(s) inexistente(s): {deps}.')
+
+    rows = df.to_dict('records')
+    DisciplineModel.put_batch(*rows)
+    
 def update_discipline(department_id, discipline_id, data):
     data['id'] = discipline_id
     discipline = DisciplineModel.get(departmentId=department_id, id=discipline_id)

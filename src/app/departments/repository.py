@@ -1,6 +1,6 @@
 import pandas as pd
 from src.app.models import DepartmentModel, DisciplineModel
-
+from src.app.utils import slugify
 
 def fetch_departments():
     items = [e.to_dict() for e in DepartmentModel.scan().limit(10000)]
@@ -16,7 +16,11 @@ def add_department(department):
 
 def add_department_from_csv(file):
     df = pd.read_csv(file)
-    print(df)
+    if(sorted(df.columns) != sorted(['name'])):
+        raise Exception('Invalid CSV file.')
+    df['id'] = df['name'].apply(slugify)
+    rows = df.to_dict('records')
+    DepartmentModel.put_batch(*rows)
 
 def update_department(department_id, data):
     data['id'] = department_id

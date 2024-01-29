@@ -98,6 +98,21 @@ def add_professor():
     repository.add_professor(professor)
     return jsonify(data=professor)
 
+@blueprint.route('/professors/upload', methods=['POST'])
+@require_permission('create:professors')
+def add_professor_from_csv():
+    """Add professors from CSV file.
+    ---
+    tags:
+        - professors
+    responses:
+        200:
+            description: OK
+    """
+    file = req.files['file']
+    repository.add_professors_from_csv(file)
+    return jsonify(data={'msg': 'success'})
+
 @blueprint.route('/professors/<professor_id>', methods=['PUT'])
 @require_permission('update:professors')
 def update_professor(professor_id):
@@ -142,9 +157,9 @@ def remove_professor(professor_id):
     repository.remove_professor(professor_id)
     return jsonify(data={})
 
-@blueprint.route('/professors/ratings/<discipline_id>/summary', methods=['GET'])
-def fetch_professor_ratings_of_discipline(discipline_id):
-    """Fetch professor ratings of discipline.
+@blueprint.route('/professors/ratings/<department_id>/<discipline_id>/summary', methods=['GET'])
+def fetch_discipline_professors_ratings_summary(department_id, discipline_id):
+    """Fetch professors ratings of discipline.
     ---
     tags:
         - testimonials
@@ -152,7 +167,7 @@ def fetch_professor_ratings_of_discipline(discipline_id):
         200:
             description: OK
     """
-    return jsonify(data=repository.fetch_professor_ratings_of_discipline(discipline_id))
+    return jsonify(data=repository.fetch_discipline_professors_ratings_summary(department_id, discipline_id))
 
 
 @blueprint.route('/professors/<professor_id>/testimonials/<discipline_id>', methods=['DELETE'])

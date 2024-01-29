@@ -108,8 +108,23 @@ def add_discipline(department_id):
     repository.add_discipline(department_id, discipline)
     return jsonify(data=discipline)
 
+@blueprint.route('/disciplines/upload', methods=['POST'])
+@require_permission('create:discipline')
+def add_discipline_from_csv():
+    """Add disciplines from CSV file.
+    ---
+    tags:
+        - disciplines
+    responses:
+        200:
+            description: OK
+    """
+    file = req.files['file']
+    repository.add_discipline_from_csv(file)
+    return jsonify(data={'msg': 'success'})
+
 @blueprint.route('/departments/<department_id>/disciplines/<discipline_id>', methods=['PUT'])
-@require_permission('update:disciplines')
+@require_permission('update:discipline')
 def update_discipline(department_id, discipline_id):
     """Update discipline.
     ---
@@ -133,7 +148,7 @@ def update_discipline(department_id, discipline_id):
     return jsonify(data=data)
 
 @blueprint.route('/departments/<department_id>/disciplines/<discipline_id>', methods=['DELETE'])
-@require_permission('delete:disciplines')
+@require_permission('delete:discipline')
 def remove_discipline(department_id, discipline_id):
     """Remove discipline.
     ---
