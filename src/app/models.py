@@ -224,6 +224,12 @@ class ProfessorRatingModel(DynaModel):
         hash_key = 'disciplineIdProfessorIdPeriod'
         range_key = 'studentId'
 
+    class ByStudent(GlobalIndex):
+        name = 'gsiStudentId'
+        hash_key = 'studentId'
+        range_key = 'disciplineIdProfessorIdPeriod'
+        projection = ProjectAll()
+
     class ProfessorRatingModel(Schema):
         disciplineIdProfessorIdPeriod = fields.Str(description='Discipline ID : Professor ID : Period')
         disciplineId = fields.Str(description='Discipline ID')

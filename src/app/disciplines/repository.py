@@ -30,7 +30,7 @@ def fetch_discipline_professors(department_id, discipline_id):
 def fetch_discipline_testimonials(department_id, discipline_id):
     testimonials = []
     user_id = req.user.get('id') if req.user else None 
-    for testimonial in DisciplineTestimonialModel.query(disciplineId=discipline_id).limit(10000):
+    for testimonial in DisciplineTestimonialModel.query(disciplineId=discipline_id).reverse().limit(10000):
         testimonial = testimonial.to_dict()
         if(testimonial.get('anonymous') is True):
             testimonial['studentName'] = 'Anônimo'

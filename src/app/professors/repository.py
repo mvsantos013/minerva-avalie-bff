@@ -5,7 +5,7 @@ from flask import request as req
 from src.lib import utils
 from datetime import datetime, timezone
 from src.app.models import (ProfessorModel, DisciplineProfessorModel, ProfessorTestimonialModel, 
-    ProfessorRatingSummaryModel, ReportedProfessorTestimonialModel, DepartmentModel)
+    ProfessorRatingSummaryModel, ReportedProfessorTestimonialModel, DepartmentModel, ProfessorRatingModel)
 from src.lib.adapters import s3_adapter
 from src.constants import BUCKET_FILES
 
@@ -115,11 +115,31 @@ def remove_professor(professor_id):
 def fetch_discipline_professors_ratings_summary(department_id, discipline_id):
     id = f"{department_id}:{discipline_id}"
     discipline_professors_ids = [{'id': e.professorId} for e in DisciplineProfessorModel.ByDiscipline.query(departmentIdDisciplineId=id).limit(1000)]
+    
+    # Get professors with public ratings
     professors = ProfessorModel.get_batch(keys=discipline_professors_ids, attrs='id,hasPublicRating')
     professors_public_ratings = {e.id: e.hasPublicRating for e in professors}
+    
+    # Get professors that the student has rated
+    student_id = req.user['id']
+    student_ratings = ProfessorRatingModel.ByStudent.query(studentId=student_id).limit(10000)
+    student_professors_rated = {e.disciplineId + e.professorId: True for e in student_ratings }
+
     ratings_summary = ProfessorRatingSummaryModel.ByDiscipline.query(disciplineId=discipline_id).limit(10000)
-    items = [e.to_dict() for e in ratings_summary if professors_public_ratings.get(e.professorId) is True]
-    return items
+    result = []
+    for rs in ratings_summary:
+        has_public_rating = professors_public_ratings.get(rs.professorId, False)
+        student_has_rated = student_professors_rated.get(rs.disciplineId + rs.professorId, False)
+        item = rs.to_dict()
+        if(has_public_rating):
+            item['studentHasRated'] = True
+            if(not student_has_rated):
+                del item['averageValue']
+                del item['count']
+                del item['details']
+                item['studentHasRated'] = False
+            result.append(item)
+    return result
 
 
 def remove_testimonial(testimonial):

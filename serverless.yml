@@ -517,7 +517,16 @@ resources:
             KeyType: HASH
           - AttributeName: studentId
             KeyType: RANGE
-    
+        GlobalSecondaryIndexes:
+          - IndexName: gsiStudentId
+            KeySchema:
+              - AttributeName: studentId
+                KeyType: HASH
+              - AttributeName: disciplineIdProfessorIdPeriod
+                KeyType: RANGE
+            Projection:
+              ProjectionType: ALL
+
     ProfessorsRatingsSummaryTable:
       Type: AWS::DynamoDB::Table
       Properties:
