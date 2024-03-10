@@ -137,7 +137,7 @@ def fetch_discipline_professors_ratings_summary(department_id, discipline_id):
                 del item['averageValue']
                 del item['count']
                 del item['details']
-                item['studentHasRated'] = False
+                item['studentHasRated'] = True # False
             result.append(item)
     return result
 
