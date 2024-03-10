@@ -55,8 +55,10 @@ def add_professor(professor):
         s3_adapter.upload_file(s3_path, picture)
         professor['pictureUrl'] = f'https://{BUCKET_FILES}.s3.amazonaws.com/{s3_path}'
 
-    del professor['disciplinesToAdd']
-    del professor['disciplinesToRemove']
+    if('disciplinesToAdd' in professor):
+        del professor['disciplinesToAdd']
+    if('disciplinesToRemove' in professor):
+        del professor['disciplinesToRemove']
 
     professor = ProfessorModel(**professor)
     professor.save()
