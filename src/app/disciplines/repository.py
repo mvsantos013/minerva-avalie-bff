@@ -40,7 +40,6 @@ def fetch_discipline_testimonials(department_id, discipline_id):
     return testimonials
 
 def add_discipline(department_id, discipline):
-    discipline['id'] = str(uuid4())
     discipline = DisciplineModel(**discipline)
     discipline.save()
 
