@@ -89,7 +89,7 @@ def fetch_discipline_testimonials(department_id, discipline_id):
     return jsonify(data=testimonials)
 
 @blueprint.route('/departments/<department_id>/disciplines', methods=['POST'])
-@require_permission('create:disciplines')
+@require_permission('create:discipline')
 def add_discipline(department_id):
     """Add discipline.
     ---
