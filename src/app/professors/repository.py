@@ -134,15 +134,16 @@ def fetch_discipline_professors_ratings_summary(department_id, discipline_id):
     result = []
     for rs in ratings_summary:
         has_public_rating = professors_public_ratings.get(rs.professorId, False)
-        student_has_rated = student_professors_rated.get(rs.disciplineId + rs.professorId, False)
+        # This feature basicaly hides the ratings of professors that the student has not rated, disabled for now
+        # student_has_rated = student_professors_rated.get(rs.disciplineId + rs.professorId, False)
         item = rs.to_dict()
         if(has_public_rating):
             item['studentHasRated'] = True
-            if(not student_has_rated):
-                del item['averageValue']
-                del item['count']
-                del item['details']
-                item['studentHasRated'] = True # False
+        #     if(not student_has_rated):
+        #         del item['averageValue']
+        #         del item['count']
+        #         del item['details']
+        #         item['studentHasRated'] = False
             result.append(item)
     return result
 
