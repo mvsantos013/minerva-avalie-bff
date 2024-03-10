@@ -55,13 +55,16 @@ def add_professor(professor):
         s3_adapter.upload_file(s3_path, picture)
         professor['pictureUrl'] = f'https://{BUCKET_FILES}.s3.amazonaws.com/{s3_path}'
 
+    disciplines_to_add = json.loads(professor.get('disciplinesToAdd', '[]'))
+
     if('disciplinesToAdd' in professor):
         del professor['disciplinesToAdd']
-    if('disciplinesToRemove' in professor):
-        del professor['disciplinesToRemove']
 
     professor = ProfessorModel(**professor)
     professor.save()
+
+    if(len(disciplines_to_add) > 0):
+        DisciplineProfessorModel.put_batch(*disciplines_to_add)
 
 def add_professors_from_csv(file):
     df = pd.read_csv(file, sep=',')
