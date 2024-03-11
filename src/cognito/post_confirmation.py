@@ -6,7 +6,7 @@ from src.constants import COGNITO_USER_POOL_ID
     It adds the user to the default group.
 '''
 
-INITIAL_GROUP = 'Convidado'
+INITIAL_GROUP = 'Student'
 
 cognito = boto3.client('cognito-idp')
 
